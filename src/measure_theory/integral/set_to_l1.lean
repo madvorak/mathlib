@@ -1184,6 +1184,29 @@ lemma set_to_fun_add (hT : dominated_fin_meas_additive μ T C)
 by rw [set_to_fun_eq hT (hf.add hg), set_to_fun_eq hT hf, set_to_fun_eq hT hg, integrable.to_L1_add,
   (L1.set_to_L1 hT).map_add]
 
+lemma set_to_fun_finset_sum' (hT : dominated_fin_meas_additive μ T C) {ι} (s : finset ι)
+  {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
+  set_to_fun hT (∑ i in s, f i) = ∑ i in s, set_to_fun hT (f i) :=
+begin
+  refine finset.induction_on s _ _,
+  { simp only [set_to_fun_zero, finset.sum_empty] },
+  { assume i s his ih,
+    simp only [his, finset.sum_insert, not_false_iff],
+    rw set_to_fun_add hT (hf i) _,
+    { rw ih, },
+    { convert (integrable_finset_sum s hf), ext1 x, simp, }, }
+end
+
+lemma set_to_fun_finset_sum (hT : dominated_fin_meas_additive μ T C) {ι} (s : finset ι)
+  {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
+  set_to_fun hT (λ a, ∑ i in s, f i a) = ∑ i in s, set_to_fun hT (f i) :=
+begin
+  rw ← set_to_fun_finset_sum' hT s hf,
+  congr,
+  ext1 a,
+  simp,
+end
+
 lemma set_to_fun_neg (hT : dominated_fin_meas_additive μ T C) (f : α → E) :
   set_to_fun hT (-f) = - set_to_fun hT f :=
 begin
