@@ -1119,9 +1119,7 @@ by { rw [← f.integral_eq_integral hfi, simple_func.integral, ← simple_func.i
 begin
   cases (@le_top _ _ _ (μ univ)).lt_or_eq with hμ hμ,
   { haveI : is_finite_measure μ := ⟨hμ⟩,
-    calc ∫ x : α, c ∂μ = (simple_func.const α c).integral μ :
-      ((simple_func.const α c).integral_eq_integral (integrable_const _)).symm
-    ... = _ : simple_func.integral_const _ _ },
+    exact set_to_fun_const (dominated_fin_meas_additive_weighted_smul _) _, },
   { by_cases hc : c = 0,
     { simp [hc, integral_zero] },
     { have : ¬integrable (λ x : α, c) μ,
