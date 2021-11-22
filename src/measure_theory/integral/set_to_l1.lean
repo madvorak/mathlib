@@ -1200,12 +1200,7 @@ end
 lemma set_to_fun_finset_sum (hT : dominated_fin_meas_additive μ T C) {ι} (s : finset ι)
   {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
   set_to_fun hT (λ a, ∑ i in s, f i a) = ∑ i in s, set_to_fun hT (f i) :=
-begin
-  rw ← set_to_fun_finset_sum' hT s hf,
-  congr,
-  ext1 a,
-  simp,
-end
+by { convert set_to_fun_finset_sum' hT s hf, ext1 a, simp, }
 
 lemma set_to_fun_neg (hT : dominated_fin_meas_additive μ T C) (f : α → E) :
   set_to_fun hT (-f) = - set_to_fun hT f :=
