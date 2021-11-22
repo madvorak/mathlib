@@ -284,11 +284,22 @@ begin
   exact continuous_linear_map.map_zero _,
 end
 
-lemma set_to_simple_func_mono {G} [normed_linear_ordered_group G] [normed_space ℝ G]
-  {m : measurable_space α}
-  (T : set α → F →L[ℝ] G) (T' : set α → F →L[ℝ] G) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
+lemma set_to_simple_func_mono_left {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {m : measurable_space α} (T T' : set α → F →L[ℝ] G) (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →ₛ F) :
   set_to_simple_func T f ≤ set_to_simple_func T' f :=
 by { simp_rw set_to_simple_func, exact sum_le_sum (λ i hi, hTT' _ i), }
+
+lemma set_to_simple_func_mono_left' {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  (T T' : set α → E →L[ℝ] G) (hTT' : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, T s x ≤ T' s x)
+  (f : α →ₛ E) (hf : integrable f μ) :
+  set_to_simple_func T f ≤ set_to_simple_func T' f :=
+begin
+  simp_rw set_to_simple_func,
+  refine sum_le_sum (λ i hi, _),
+  by_cases h0 : i = 0,
+  { simp [h0], },
+  { exact hTT' _ (measurable_set_fiber _ _) (measure_preimage_lt_top_of_integrable _ hf h0).ne i, }
+end
 
 lemma map_set_to_simple_func (T : set α → F →L[ℝ] F') (h_add : fin_meas_additive μ T)
   {f : α →ₛ G} (hf : integrable f μ) {g : G → F} (hg : g 0 = 0) :
@@ -679,27 +690,21 @@ end
 
 lemma set_to_L1s_add_left (T T' : set α → E →L[ℝ] F) (f : α →₁ₛ[μ] E) :
   set_to_L1s (T + T') f = set_to_L1s T f + set_to_L1s T' f :=
-by simp_rw [set_to_L1s, simple_func.set_to_simple_func_add_left T T']
+simple_func.set_to_simple_func_add_left T T'
 
 lemma set_to_L1s_add_left' (T T' T'' : set α → E →L[ℝ] F)
   (h_add : ∀ s, measurable_set s → μ s ≠ ∞ → T'' s = T s + T' s) (f : α →₁ₛ[μ] E) :
   set_to_L1s T'' f = set_to_L1s T f + set_to_L1s T' f :=
-begin
-  simp_rw set_to_L1s,
-  exact simple_func.set_to_simple_func_add_left' T T' T'' h_add (simple_func.integrable f),
-end
+simple_func.set_to_simple_func_add_left' T T' T'' h_add (simple_func.integrable f)
 
 lemma set_to_L1s_smul_left (T : set α → E →L[ℝ] F) (c : ℝ) (f : α →₁ₛ[μ] E) :
   set_to_L1s (λ s, c • (T s)) f = c • set_to_L1s T f :=
-by simp_rw [set_to_L1s, simple_func.set_to_simple_func_smul_left T c]
+simple_func.set_to_simple_func_smul_left T c _
 
 lemma set_to_L1s_smul_left' (T T' : set α → E →L[ℝ] F) (c : ℝ)
   (h_smul : ∀ s, measurable_set s → μ s ≠ ∞ → T' s = c • (T s)) (f : α →₁ₛ[μ] E) :
   set_to_L1s T' f = c • set_to_L1s T f :=
-begin
-  simp_rw set_to_L1s,
-  exact simple_func.set_to_simple_func_smul_left' T T' c h_smul (simple_func.integrable f),
-end
+simple_func.set_to_simple_func_smul_left' T T' c h_smul (simple_func.integrable f)
 
 lemma set_to_L1s_add (T : set α → E →L[ℝ] F) (h_zero : ∀ s, measurable_set s → μ s = 0 → T s = 0)
   (h_add : fin_meas_additive μ T) (f g : α →₁ₛ[μ] E) :
@@ -764,6 +769,20 @@ lemma set_to_L1s_const [is_finite_measure μ] {T : set α → E →L[ℝ] F} {C 
   set_to_L1s T (simple_func.indicator_const 1 measurable_set.univ (measure_ne_top μ _) x)
     = T univ x :=
 set_to_L1s_indicator_const hT measurable_set.univ (measure_ne_top _ _) x
+
+lemma set_to_L1s_mono_left {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
+  set_to_L1s T f ≤ set_to_L1s T' f :=
+simple_func.set_to_simple_func_mono_left T T' hTT' _
+
+lemma set_to_L1s_mono_left' {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
+  set_to_L1s T f ≤ set_to_L1s T' f :=
+simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
 
 variables [normed_space 𝕜 F] [measurable_space 𝕜] [opens_measurable_space 𝕜]
 
@@ -850,6 +869,20 @@ lemma set_to_L1s_clm_const [is_finite_measure μ] {T : set α → E →L[ℝ] F}
   set_to_L1s_clm α E μ hT (simple_func.indicator_const 1 measurable_set.univ (measure_ne_top μ _) x)
     = T univ x :=
 set_to_L1s_const hT x
+
+lemma set_to_L1s_clm_mono_left {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
+  set_to_L1s_clm α E μ hT f ≤ set_to_L1s_clm α E μ hT' f :=
+simple_func.set_to_simple_func_mono_left T T' hTT' _
+
+lemma set_to_L1s_clm_mono_left' {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁ₛ[μ] E) :
+  set_to_L1s_clm α E μ hT f ≤ set_to_L1s_clm α E μ hT' f :=
+simple_func.set_to_simple_func_mono_left' T T' hTT' _ (simple_func.integrable f)
 
 end set_to_L1s
 
@@ -1009,17 +1042,47 @@ begin
   exact continuous_linear_map.map_smul _ _ _,
 end
 
+lemma set_to_L1_simple_func_indicator_const (hT : dominated_fin_meas_additive μ T C) {s : set α}
+  (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
+  set_to_L1 hT (simple_func.indicator_const 1 hs hμs x) = T s x :=
+by { rw set_to_L1_eq_set_to_L1s_clm, exact set_to_L1s_indicator_const hT hs hμs x, }
+
 lemma set_to_L1_indicator_const_Lp (hT : dominated_fin_meas_additive μ T C) {s : set α}
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
   set_to_L1 hT (indicator_const_Lp 1 hs hμs x) = T s x :=
 begin
-  rw [← Lp.simple_func.coe_indicator_const hs hμs x, set_to_L1_eq_set_to_L1s_clm],
-  exact set_to_L1s_indicator_const hT hs hμs x,
+  rw ← Lp.simple_func.coe_indicator_const hs hμs x,
+  exact set_to_L1_simple_func_indicator_const hT hs hμs x,
 end
 
 lemma set_to_L1_const [is_finite_measure μ] (hT : dominated_fin_meas_additive μ T C) (x : E) :
   set_to_L1 hT (indicator_const_Lp 1 measurable_set.univ (measure_ne_top _ _) x) = T univ x :=
 set_to_L1_indicator_const_Lp hT measurable_set.univ (measure_ne_top _ _) x
+
+lemma set_to_L1_mono_left' {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  [order_closed_topology G] [complete_space G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, T s x ≤ T' s x) (f : α →₁[μ] E) :
+  set_to_L1 hT f ≤ set_to_L1 hT' f :=
+begin
+  refine Lp.induction one_ne_top _ _ _ _ f,
+  { intros c s hs hμs,
+    rw [set_to_L1_simple_func_indicator_const hT hs hμs.ne,
+      set_to_L1_simple_func_indicator_const hT' hs hμs.ne],
+    exact hTT' s hs hμs.ne c, },
+  { intros f g hf hg hfg_disj hf_le hg_le,
+    rw [(set_to_L1 hT).map_add, (set_to_L1 hT').map_add],
+    exact add_le_add hf_le hg_le, },
+  { exact is_closed_le (set_to_L1 hT).continuous (set_to_L1 hT').continuous, },
+end
+
+lemma set_to_L1_mono_left {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  [order_closed_topology G] [complete_space G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
+  set_to_L1 hT f ≤ set_to_L1 hT' f :=
+set_to_L1_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
 lemma norm_set_to_L1_le_norm_set_to_L1s_clm (hT : dominated_fin_meas_additive μ T C) :
   ∥set_to_L1 hT∥ ≤ ∥set_to_L1s_clm α E μ hT∥ :=
@@ -1177,6 +1240,25 @@ begin
   { rw set_to_fun_eq hT hf, exact L1.set_to_L1_zero_left' hT h_zero _, },
   { exact set_to_fun_undef hT hf, },
 end
+
+lemma set_to_fun_mono_left' {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  [order_closed_topology G] [complete_space G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C')
+  (hTT' : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, T s x ≤ T' s x) (f : α → E) :
+  set_to_fun hT f ≤ set_to_fun hT' f :=
+begin
+  by_cases hf : integrable f μ,
+  { simp_rw set_to_fun_eq _ hf, exact L1.set_to_L1_mono_left' hT hT' hTT' _, },
+  { simp_rw set_to_fun_undef _ hf, },
+end
+
+lemma set_to_fun_mono_left {G} [normed_linear_ordered_group G] [normed_space ℝ G]
+  [order_closed_topology G] [complete_space G]
+  {T T' : set α → E →L[ℝ] G} {C C' : ℝ} (hT : dominated_fin_meas_additive μ T C)
+  (hT' : dominated_fin_meas_additive μ T' C') (hTT' : ∀ s x, T s x ≤ T' s x) (f : α →₁[μ] E) :
+  set_to_fun hT f ≤ set_to_fun hT' f :=
+set_to_fun_mono_left' hT hT' (λ s _ _ x, hTT' s x) f
 
 lemma set_to_fun_add (hT : dominated_fin_meas_additive μ T C)
   (hf : integrable f μ) (hg : integrable g μ) :
