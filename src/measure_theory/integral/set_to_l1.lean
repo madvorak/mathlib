@@ -1335,7 +1335,7 @@ begin
     have hx_tendsto : tendsto (λ (n : ℕ), snorm (x n - g) 1 μ) at_top (𝓝 0),
     { refine @simple_func.tendsto_approx_on_Lp_snorm α G _ _ _ 1 _ g (Lp.measurable g)
         {y | 0 ≤ y} 0 le_rfl _ one_ne_top μ _ _,
-      { have hg_nonneg : 0 ≤ᵐ[μ] g, from (simple_func.Lp.coe_fn_nonneg _).mpr g.2,
+      { have hg_nonneg : 0 ≤ᵐ[μ] g, from (Lp.coe_fn_nonneg _).mpr g.2,
         refine hg_nonneg.mono (λ a ha, subset_closure _),
         simpa using ha, },
       { simp_rw sub_zero, exact hfi'.snorm_lt_top, }, },
@@ -1655,7 +1655,7 @@ begin
   by_cases hfi : integrable f μ,
   { simp_rw set_to_fun_eq _ hfi,
     refine L1.set_to_L1_nonneg hT hT_nonneg _,
-    rw ← L1.simple_func.Lp.coe_fn_le,
+    rw ← Lp.coe_fn_le,
     have h0 := Lp.coe_fn_zero G 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
     filter_upwards [h0, h],
