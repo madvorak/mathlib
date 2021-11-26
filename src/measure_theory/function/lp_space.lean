@@ -1949,46 +1949,6 @@ begin
   by_cases hy_mem : y ∈ s; simp [hy_mem, continuous_linear_map.lsmul_apply],
 end
 
-namespace Lp
-section pos_part
-
-lemma lipschitz_with_pos_part : lipschitz_with 1 (λ (x : ℝ), max x 0) :=
-lipschitz_with.of_dist_le_mul $ λ x y, by simp [dist, abs_max_sub_max_le_abs]
-
-/-- Positive part of a function in `L^p`. -/
-def pos_part (f : Lp ℝ p μ) : Lp ℝ p μ :=
-lipschitz_with_pos_part.comp_Lp (max_eq_right (le_refl _)) f
-
-/-- Negative part of a function in `L^p`. -/
-def neg_part (f : Lp ℝ p μ) : Lp ℝ p μ := pos_part (-f)
-
-@[norm_cast]
-lemma coe_pos_part (f : Lp ℝ p μ) : (pos_part f : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
-
-lemma coe_fn_pos_part (f : Lp ℝ p μ) : ⇑(pos_part f) =ᵐ[μ] λ a, max (f a) 0 :=
-ae_eq_fun.coe_fn_pos_part _
-
-lemma coe_fn_neg_part_eq_max (f : Lp ℝ p μ) : ∀ᵐ a ∂μ, neg_part f a = max (- f a) 0 :=
-begin
-  rw neg_part,
-  filter_upwards [coe_fn_pos_part (-f), coe_fn_neg f],
-  assume a h₁ h₂,
-  rw [h₁, h₂, pi.neg_apply]
-end
-
-lemma coe_fn_neg_part (f : Lp ℝ p μ) : ∀ᵐ a ∂μ, neg_part f a = - min (f a) 0 :=
-(coe_fn_neg_part_eq_max f).mono $ assume a h,
-by rw [h, ← max_neg_neg, neg_zero]
-
-lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λf : Lp ℝ p μ, pos_part f) :=
-lipschitz_with.continuous_comp_Lp _ _
-
-lemma continuous_neg_part [fact (1 ≤ p)] : continuous (λf : Lp ℝ p μ, neg_part f) :=
-have eq : (λf : Lp ℝ p μ, neg_part f) = (λf : Lp ℝ p μ, pos_part (-f)) := rfl,
-by { rw eq, exact continuous_pos_part.comp continuous_neg }
-
-end pos_part
-end Lp
 end measure_theory
 
 end composition

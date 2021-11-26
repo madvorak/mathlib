@@ -68,48 +68,50 @@ variables {E : Type*} [lattice_normed_linear_ordered_group E]
   [measurable_space E] [borel_space E] [second_countable_topology E]
 
 /-- Positive part of a function in `L^p`. -/
-def pos_part' (f : Lp E p μ) : Lp E p μ :=
+def pos_part (f : Lp E p μ) : Lp E p μ :=
 lipschitz_with_max'.comp_Lp (max_eq_right (le_refl _)) f
 
 /-- Negative part of a function in `L^p`. -/
-def neg_part' (f : Lp E p μ) : Lp E p μ := pos_part' (-f)
+def neg_part (f : Lp E p μ) : Lp E p μ := pos_part (-f)
 
-lemma neg_part_eq_pos_part_neg (f : Lp E p μ) : neg_part' f = pos_part' (-f) := rfl
+lemma neg_part_eq_pos_part_neg (f : Lp E p μ) : neg_part f = pos_part (-f) := rfl
 
-lemma coe_fn_pos_part' (f : Lp E p μ) :
-  pos_part' f =ᵐ[μ] λ a, max (f a) 0 :=
+@[norm_cast]
+lemma coe_pos_part (f : Lp ℝ p μ) : (pos_part f : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
+
+lemma coe_fn_pos_part (f : Lp E p μ) :
+  pos_part f =ᵐ[μ] λ a, max (f a) 0 :=
 by { refine (lipschitz_with.coe_fn_comp_Lp _ _ _).trans _, refl, }
 
-lemma coe_fn_neg_part_eq_max' (f : Lp E p μ) :
-  neg_part' f =ᵐ[μ] λ a, max (-f a) 0 :=
+lemma coe_fn_neg_part_eq_max (f : Lp E p μ) :
+  neg_part f =ᵐ[μ] λ a, max (-f a) 0 :=
 begin
-  rw neg_part',
-  refine (coe_fn_pos_part' (-f)).trans _,
+  rw neg_part,
+  refine (coe_fn_pos_part (-f)).trans _,
   refine (coe_fn_neg f).mono (λ a ha, _),
   dsimp only,
   rw ha,
   refl,
 end
 
-lemma coe_fn_neg_part' (f : Lp E p μ) :
-  neg_part' f =ᵐ[μ] λ a, - min (f a) 0 :=
+lemma coe_fn_neg_part (f : Lp E p μ) :
+  neg_part f =ᵐ[μ] λ a, - min (f a) 0 :=
 begin
-  refine (coe_fn_neg_part_eq_max' f).trans (filter.eventually_of_forall $ λ x, _),
+  refine (coe_fn_neg_part_eq_max f).trans (filter.eventually_of_forall $ λ x, _),
   rw [← neg_zero, max_neg_neg, neg_zero],
 end
 
-lemma continuous_pos_part' [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, pos_part' f) :=
+lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, pos_part f) :=
 lipschitz_with.continuous_comp_Lp _ _
 
-lemma continuous_neg_part' [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, neg_part' f) :=
-have eq : (λ f : Lp E p μ, neg_part' f) = (λ f : Lp E p μ, pos_part' (-f)) := rfl,
-by { rw eq, exact continuous_pos_part'.comp continuous_neg }
+lemma continuous_neg_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, neg_part f) :=
+have eq : (λ f : Lp E p μ, neg_part f) = (λ f : Lp E p μ, pos_part (-f)) := rfl,
+by { rw eq, exact continuous_pos_part.comp continuous_neg }
 
-lemma pos_part_eq_zero_iff (f : Lp E p μ) : pos_part' f = 0 ↔ f ≤ 0 :=
+lemma pos_part_eq_zero_iff (f : Lp E p μ) : pos_part f = 0 ↔ f ≤ 0 :=
 begin
-  rw ← Lp.coe_fn_le,
-  rw ext_iff,
-  have h_pos_part := coe_fn_pos_part' f,
+  rw [← Lp.coe_fn_le, ext_iff],
+  have h_pos_part := coe_fn_pos_part f,
   have h0 := coe_fn_zero E p μ,
   split; intro h; filter_upwards [h, h_pos_part, h0]; intros a ha1 ha2 ha3,
   { rw ha1 at ha2,
@@ -120,13 +122,13 @@ begin
     exact max_eq_right ha1, },
 end
 
-lemma neg_part_eq_zero_iff (f : Lp E p μ) : neg_part' f = 0 ↔ 0 ≤ f :=
+lemma neg_part_eq_zero_iff (f : Lp E p μ) : neg_part f = 0 ↔ 0 ≤ f :=
 by rw [neg_part_eq_pos_part_neg, pos_part_eq_zero_iff, neg_nonpos]
 
 lemma is_closed_nonneg [fact (1 ≤ p)] : is_closed {f : Lp E p μ | 0 ≤ f} :=
 begin
-  suffices : {f : ↥(Lp E p μ) | 0 ≤ f} = neg_part' ⁻¹' {(0 : Lp E p μ)},
-  by { rw this, exact is_closed.preimage continuous_neg_part' is_closed_singleton, },
+  suffices : {f : ↥(Lp E p μ) | 0 ≤ f} = neg_part ⁻¹' {(0 : Lp E p μ)},
+  by { rw this, exact is_closed.preimage continuous_neg_part is_closed_singleton, },
   ext1 f,
   simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq],
   exact (neg_part_eq_zero_iff f).symm,
@@ -139,11 +141,9 @@ lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topologic
 begin
   let F := λ p : G × G, p.snd - p.fst,
   have : {p : G × G | p.fst ≤ p.snd} = F ⁻¹' {x : G | 0 ≤ x},
-  { ext1 p,
-    simp only [sub_nonneg, set.preimage_set_of_eq], },
+    by { ext1 p, simp only [sub_nonneg, set.preimage_set_of_eq], },
   rw this,
-  have F_cont : continuous F, from continuous_snd.sub continuous_fst,
-  exact is_closed.preimage F_cont h,
+  exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
 end
 
 instance [fact (1 ≤ p)] : order_closed_topology (Lp E p μ) :=

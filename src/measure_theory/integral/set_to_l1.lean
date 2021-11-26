@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Zhouhang Zhou, Yury Kudryashov, Sébastien Gouëzel, Rémy Degenne
 -/
 import measure_theory.function.simple_func_dense
+import measure_theory.function.lp_order
 
 /-!
 # Extension of a linear function from indicators to L1
