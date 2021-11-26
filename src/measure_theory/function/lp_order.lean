@@ -1,12 +1,21 @@
-
+/-
+Copyright (c) 2021 Rémy Degenne. All rights reserved.
+Released under Apache 2.0 license as described in the file LICENSE.
+Authors: Rémy Degenne
+-/
 import measure_theory.function.lp_space
 
+/-!
+# Order related properties of Lp spaces
+
+-/
 
 open topological_space measure_theory
 open_locale ennreal
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
 
+/-- TODO -/
 class lattice_normed_linear_ordered_group (α : Type*) extends normed_linear_ordered_group α :=
 (norm_le_of_abs_le' : ∀ x y : α, |x| ≤ |y| → ∥x∥ ≤ ∥y∥)
 
@@ -56,7 +65,7 @@ begin
   exact add_le_add le_rfl h3,
 end
 
-instance [fact (1 ≤ p)] : ordered_add_comm_group (Lp G p μ) :=
+instance : ordered_add_comm_group (Lp G p μ) :=
 { add_le_add_left := λ f g hfg f', add_le_add_left hfg f',
   ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
 
