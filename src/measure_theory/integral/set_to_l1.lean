@@ -1325,43 +1325,6 @@ begin
   simp_rw [prod.semi_norm_def, prod.fst_sub, prod.snd_sub, ← tendsto_zero_max_norm_iff],
 end
 
-lemma Lp.ae_tendsto_of_tendsto [fact (1 ≤ p)] (seq : ℕ → Lp E p μ) (f : Lp E p μ)
-  (h : tendsto seq at_top (𝓝 f)) :
-  ∀ᵐ x ∂μ, tendsto (λ n, seq n x) at_top (𝓝 $ f x) :=
-  -- this is false!
-sorry
-
-instance {G} [normed_linear_ordered_group G] [normed_space ℝ G]
-  [measurable_space G] [borel_space G] [second_countable_topology G] [order_closed_topology G] :
-  order_closed_topology (Lp G 1 μ) :=
-begin
-  refine ⟨_⟩,
-  rw ← is_seq_closed_iff_is_closed,
-  refine is_seq_closed_of_def _,
-  intros seq fg h_seq_mem h_tendsto,
-  rw set.mem_set_of_eq,
-  simp_rw set.mem_set_of_eq at h_seq_mem,
-  simp_rw ← simple_func.Lp.coe_fn_le at h_seq_mem ⊢,
-  simp_rw eventually_le at h_seq_mem,
-  rw ← ae_all_iff at h_seq_mem,
-  have h_tendsto' : ∀ᵐ x ∂μ, tendsto (λ n, (⟨(seq n).fst x, (seq n).snd x⟩: G × G)) at_top
-    (𝓝 $ (⟨fg.fst x, fg.snd x⟩ : G × G)),
-  { rw prod.tendsto_iff at h_tendsto,
-    have : ∀ x, tendsto (λ (n : ℕ), ((seq n).fst x, (seq n).snd x)) at_top (𝓝 (fg.fst x, fg.snd x))
-      ↔ tendsto (λ (e : ℕ), (seq e).fst x) at_top (𝓝 (fg.fst x))
-        ∧ tendsto (λ (e : ℕ), (seq e).snd x) at_top (𝓝 (fg.snd x)),
-      by { intros x, rw prod.tendsto_iff, },
-    simp_rw this,
-    rw eventually_and,
-    exact ⟨Lp.ae_tendsto_of_tendsto _ _ h_tendsto.1, Lp.ae_tendsto_of_tendsto _ _ h_tendsto.2⟩, },
-  filter_upwards [h_tendsto', h_seq_mem],
-  intros a ha_tendsto ha_mem,
-  change (⟨fg.fst a, fg.snd a⟩ : G × G) ∈ {p : G × G | p.fst ≤ p.snd},
-  refine mem_of_is_seq_closed _ _ ha_tendsto,
-  { rw is_seq_closed_iff_is_closed, exact is_closed_le_prod, },
-  { exact ha_mem, },
-end
-
 lemma set_to_L1_nonneg {G G'} [normed_linear_ordered_group G] [normed_space ℝ G]
   [normed_linear_ordered_group G'] [normed_space ℝ G'] [measurable_space G] [borel_space G]
   [second_countable_topology G] [complete_space G'] [order_closed_topology G']
