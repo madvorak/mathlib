@@ -864,7 +864,7 @@ variables {G'' G' : Type*} [normed_linear_ordered_group G''] [measurable_space G
   [normed_linear_ordered_group G'] [normed_space ℝ G']
 
 lemma Lp.coe_fn_le (f g : Lp G'' p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
-by rw [← subtype.coe_le_coe, ← coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]
+by rw [← subtype.coe_le_coe, ← ae_eq_fun.coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]
 
 lemma Lp.coe_fn_nonneg (f : Lp G'' p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin
