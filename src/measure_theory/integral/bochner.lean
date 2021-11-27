@@ -229,6 +229,14 @@ lemma dominated_fin_meas_additive_weighted_smul {m : measurable_space α} (μ : 
   dominated_fin_meas_additive μ (weighted_smul μ : set α → F →L[ℝ] F) 1 :=
 ⟨weighted_smul_union, λ s _ _, (norm_weighted_smul_le s).trans (one_mul _).symm.le⟩
 
+lemma weighted_smul_nonneg (s : set α) (hs : measurable_set s) (hμs : μ s ≠ ⊤) (x : ℝ)
+  (hx : 0 ≤ x) :
+  0 ≤ weighted_smul μ s x :=
+begin
+  simp only [weighted_smul, algebra.id.smul_eq_mul, coe_smul', id.def, coe_id', pi.smul_apply],
+  exact mul_nonneg to_real_nonneg hx,
+end
+
 end weighted_smul
 
 local infixr ` →ₛ `:25 := simple_func
@@ -960,11 +968,7 @@ begin
 end
 
 lemma integral_nonneg_of_ae {f : α → ℝ} (hf : 0 ≤ᵐ[μ] f) : 0 ≤ ∫ a, f a ∂μ :=
-begin
-  by_cases hfm : ae_measurable f μ,
-  { rw integral_eq_lintegral_of_nonneg_ae hf hfm, exact to_real_nonneg },
-  { rw integral_non_ae_measurable hfm }
-end
+set_to_fun_nonneg (dominated_fin_meas_additive_weighted_smul μ) weighted_smul_nonneg hf
 
 lemma lintegral_coe_eq_integral (f : α → ℝ≥0) (hfi : integrable (λ x, (f x : ℝ)) μ) :
   ∫⁻ a, f a ∂μ = ennreal.of_real ∫ a, f a ∂μ :=
@@ -1059,7 +1063,7 @@ end normed_group
 
 lemma integral_mono_ae {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ᵐ[μ] g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=
-le_of_sub_nonneg $ integral_sub hg hf ▸ integral_nonneg_of_ae $ h.mono (λ a, sub_nonneg_of_le)
+set_to_fun_mono (dominated_fin_meas_additive_weighted_smul μ) weighted_smul_nonneg hf hg h
 
 @[mono] lemma integral_mono {f g : α → ℝ} (hf : integrable f μ) (hg : integrable g μ) (h : f ≤ g) :
   ∫ a, f a ∂μ ≤ ∫ a, g a ∂μ :=

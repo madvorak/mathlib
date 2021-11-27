@@ -1649,7 +1649,7 @@ lemma set_to_fun_nonneg {G G'} [normed_lattice_add_comm_group G] [normed_space �
   [second_countable_topology G] [complete_space G'] [order_closed_topology G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f : α → G} (hf : 0 ≤ f) :
+  {f : α → G} (hf : 0 ≤ᵐ[μ] f) :
   0 ≤ set_to_fun hT f :=
 begin
   by_cases hfi : integrable f μ,
@@ -1658,10 +1658,10 @@ begin
     rw ← Lp.coe_fn_le,
     have h0 := Lp.coe_fn_zero G 1 μ,
     have h := integrable.coe_fn_to_L1 hfi,
-    filter_upwards [h0, h],
-    intros a h0a ha,
+    filter_upwards [h0, h, hf],
+    intros a h0a ha hfa,
     rw [h0a, ha],
-    exact hf a, },
+    exact hfa, },
   { simp_rw set_to_fun_undef _ hfi, },
 end
 
@@ -1670,12 +1670,15 @@ lemma set_to_fun_mono {G G'} [normed_lattice_add_comm_group G] [normed_space ℝ
   [second_countable_topology G] [complete_space G'] [order_closed_topology G']
   {T : set α → G →L[ℝ] G'} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (hT_nonneg : ∀ s, measurable_set s → μ s ≠ ∞ → ∀ x, 0 ≤ x → 0 ≤ T s x)
-  {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ g) :
+  {f g : α → G} (hf : integrable f μ) (hg : integrable g μ) (hfg : f ≤ᵐ[μ] g) :
   set_to_fun hT f ≤ set_to_fun hT g :=
 begin
-  rw ← sub_nonneg at hfg  ⊢,
+  rw ← sub_nonneg,
   rw ← set_to_fun_sub hT hg hf,
-  exact set_to_fun_nonneg hT hT_nonneg hfg,
+  refine set_to_fun_nonneg hT hT_nonneg _,
+  refine hfg.mono (λ a ha, _),
+  rw [pi.sub_apply, pi.zero_apply, sub_nonneg],
+  exact ha,
 end
 
 @[continuity]
