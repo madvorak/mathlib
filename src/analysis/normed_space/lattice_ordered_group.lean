@@ -151,15 +151,21 @@ instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
   [normed_lattice_add_comm_group α] : topological_lattice α :=
 topological_lattice.mk
 
+open lattice_ordered_comm_group
+
 lemma norm_sup_sub_sup_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
   ∥x ⊔ z - (y ⊔ z)∥ ≤ ∥x - y∥ :=
-solid (lattice_ordered_comm_group.abs_sup_sub_sup_le_abs x y z)
+solid (abs_sup_sub_sup_le_abs x y z)
 
 lemma norm_inf_sub_inf_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
   ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
-solid (lattice_ordered_comm_group.abs_inf_sub_inf_le_abs x y z)
+solid (abs_inf_sub_inf_le_abs x y z)
 
 lemma lipschitz_with_sup_right {α : Type*} [normed_lattice_add_comm_group α] (z : α) :
   lipschitz_with 1 (λ x, x ⊔ z) :=
 lipschitz_with.of_dist_le_mul $ λ x y, by
 { rw [nonneg.coe_one, one_mul, dist_eq_norm, dist_eq_norm], exact norm_sup_sub_sup_le_norm x y z, }
+
+lemma lipschitz_with_pos {α : Type*} [normed_lattice_add_comm_group α] :
+  lipschitz_with 1 (@lattice_ordered_comm_group.pos α _ _) :=
+lipschitz_with_sup_right 0

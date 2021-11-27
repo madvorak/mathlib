@@ -4,14 +4,14 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.function.lp_space
-import analysis.normed_space.order.lattice_linear_ordered_group
+import analysis.normed_space.order.lattice_ordered_group
 
 /-!
 # Order related properties of Lp spaces
 
 -/
 
-open topological_space measure_theory
+open topological_space measure_theory lattice_ordered_comm_group
 open_locale ennreal
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
@@ -21,7 +21,7 @@ namespace measure_theory
 namespace Lp
 
 section order
-variables {G : Type*} [normed_linear_ordered_group G]
+variables {G : Type*} [normed_lattice_add_comm_group G]
   [measurable_space G] [borel_space G] [second_countable_topology G]
 
 lemma coe_fn_le (f g : Lp G p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
@@ -56,12 +56,12 @@ end order
 
 section pos_part
 
-variables {E : Type*} [lattice_normed_linear_ordered_group E]
+variables {E : Type*} [normed_lattice_add_comm_group E]
   [measurable_space E] [borel_space E] [second_countable_topology E]
 
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp E p μ) : Lp E p μ :=
-lipschitz_with_max'.comp_Lp (max_eq_right (le_refl _)) f
+lipschitz_with_pos.comp_Lp (sup_eq_right.mpr (le_refl _)) f
 
 /-- Negative part of a function in `L^p`. -/
 def neg_part (f : Lp E p μ) : Lp E p μ := pos_part (-f)
@@ -72,11 +72,11 @@ lemma neg_part_eq_pos_part_neg (f : Lp E p μ) : neg_part f = pos_part (-f) := r
 lemma coe_pos_part (f : Lp ℝ p μ) : (pos_part f : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
 
 lemma coe_fn_pos_part (f : Lp E p μ) :
-  pos_part f =ᵐ[μ] λ a, max (f a) 0 :=
+  pos_part f =ᵐ[μ] λ a, (f a) ⊔ 0 :=
 by { refine (lipschitz_with.coe_fn_comp_Lp _ _ _).trans _, refl, }
 
 lemma coe_fn_neg_part_eq_max (f : Lp E p μ) :
-  neg_part f =ᵐ[μ] λ a, max (-f a) 0 :=
+  neg_part f =ᵐ[μ] λ a, (-f a) ⊔ 0 :=
 begin
   rw neg_part,
   refine (coe_fn_pos_part (-f)).trans _,
@@ -87,10 +87,10 @@ begin
 end
 
 lemma coe_fn_neg_part (f : Lp E p μ) :
-  neg_part f =ᵐ[μ] λ a, - min (f a) 0 :=
+  neg_part f =ᵐ[μ] λ a, - ((f a) ⊓ 0) :=
 begin
   refine (coe_fn_neg_part_eq_max f).trans (filter.eventually_of_forall $ λ x, _),
-  rw [← neg_zero, max_neg_neg, neg_zero],
+  rw [neg_inf_eq_sup_neg,  neg_zero],
 end
 
 lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, pos_part f) :=
@@ -108,10 +108,10 @@ begin
   split; intro h; filter_upwards [h, h_pos_part, h0]; intros a ha1 ha2 ha3,
   { rw ha1 at ha2,
     rw ha2,
-    exact le_max_left _ _, },
+    exact le_sup_left, },
   { rw pi.zero_apply at ha3,
     rw [ha2, ← ha3],
-    exact max_eq_right ha1, },
+    exact sup_eq_right.mpr ha1, },
 end
 
 lemma neg_part_eq_zero_iff (f : Lp E p μ) : neg_part f = 0 ↔ 0 ≤ f :=

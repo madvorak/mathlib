@@ -5,7 +5,7 @@ Authors: Yaël Dillies, Bhavik Mehta
 -/
 import analysis.convex.extreme
 import analysis.convex.function
-import analysis.normed_space.order.ordered
+import analysis.normed_space.ordered
 
 /-!
 # Exposed sets
