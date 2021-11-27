@@ -897,7 +897,9 @@ begin
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
-  simp [real.norm_of_nonneg, le_max_right, real.coe_to_nnreal]
+  rw real.nnnorm_of_nonneg le_sup_right,
+  simp only [real.coe_to_nnreal', subtype.coe_mk],
+  rw _root_.sup_eq_max,
 end,
 -- Go to the `L¹` space
 have eq₂ : ennreal.to_real (∫⁻ a, (ennreal.of_real $ - f a) ∂μ)  = ∥Lp.neg_part f₁∥ :=
@@ -910,8 +912,8 @@ begin
   rw [h₁, h₂, ennreal.of_real],
   congr' 1,
   apply nnreal.eq,
-  simp only [real.norm_of_nonneg, min_le_right, neg_nonneg, real.coe_to_nnreal', subtype.coe_mk],
-  rw [← max_neg_neg, coe_nnnorm, neg_zero, real.norm_of_nonneg (le_max_right (-f a) 0)]
+  simp only [← _root_.sup_eq_max, real.coe_to_nnreal', coe_nnnorm, nnnorm_neg],
+  rw [real.norm_of_nonpos inf_le_right, neg_inf_eq_sup_neg, neg_zero],
 end,
 begin
   rw [eq₁, eq₂, integral, dif_pos],
