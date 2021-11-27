@@ -134,6 +134,104 @@ end
 instance [fact (1 ≤ p)] : order_closed_topology (Lp E p μ) :=
 ⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩
 
+lemma pos_part_sub_neg_part (f : Lp E p μ) : pos_part f - neg_part f = f :=
+begin
+  symmetry,
+  rw sub_eq_add_neg,
+  apply eq_add_neg_of_add_eq,
+  rw neg_part_eq_pos_part_neg,
+  ext1,
+  refine (Lp.coe_fn_add _ _).trans _,
+  filter_upwards [coe_fn_pos_part f, coe_fn_pos_part (-f), coe_fn_neg f],
+  intros a ha1 ha2 ha3,
+  rw [pi.add_apply, ha1, ha2, add_sup_eq_add_sup_add, ha3, pi.neg_apply, add_right_neg, add_zero,
+    sup_comm],
+end
+
+instance : has_sup (Lp E p μ) :=
+{ sup := λ f g, f + pos_part (g - f)}
+
+instance : has_inf (Lp E p μ) :=
+{ inf := λ f g, - ((-f) ⊔ (-g)) }
+
+lemma inf_eq_neg_sup_neg (f g : Lp E p μ) : f ⊓ g = - ((-f) ⊔ (-g)) := rfl
+
+lemma sup_eq_left_add (f g : Lp E p μ) : f ⊔ g = f + pos_part (g - f) := rfl
+
+lemma sup_eq_right_add (f g : Lp E p μ) : f ⊔ g = g + pos_part (f - g) :=
+by rw [sup_eq_left_add, add_comm, ← sub_eq_sub_iff_add_eq_add,  ← neg_sub g f,
+  ← neg_part_eq_pos_part_neg, pos_part_sub_neg_part]
+
+lemma sup_comm (f g : Lp E p μ) : f ⊔ g = g ⊔ f :=
+by rw [sup_eq_left_add, sup_eq_right_add]
+
+lemma pos_part_eq_sup_zero (f : Lp E p μ) : pos_part f = f ⊔ 0 :=
+by { rw [sup_eq_right_add], simp, }
+
+lemma neg_part_eq_neg_inf_zero (f : Lp E p μ) : neg_part f = -(f ⊓ 0) :=
+by { rw [inf_eq_neg_sup_neg, sup_eq_right_add, neg_part], simp, }
+
+lemma pos_part_nonneg (f : Lp E p μ) : 0 ≤ pos_part f :=
+begin
+  rw ← coe_fn_le,
+  filter_upwards [coe_fn_pos_part f, Lp.coe_fn_zero E p μ],
+  intros a ha1 ha2,
+  rw [ha1, ha2, pi.zero_apply],
+  exact le_sup_right,
+end
+
+lemma neg_part_nonpos (f : Lp E p μ) : neg_part f ≤ 0 := sorry
+
+lemma le_sup_left (f g : Lp E p μ) : f ≤ f ⊔ g :=
+begin
+  rw sup_eq_left_add,
+  nth_rewrite 0 ← add_zero f,
+  exact add_le_add le_rfl (pos_part_nonneg _),
+end
+
+lemma le_sup_right (f g : Lp E p μ) : g ≤ f ⊔ g :=
+begin
+  rw sup_eq_right_add,
+  nth_rewrite 0 ← add_zero g,
+  exact add_le_add le_rfl (pos_part_nonneg _),
+end
+
+lemma coe_fn_sup (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] λ a, f a ⊔ g a :=
+begin
+  rw sup_eq_left_add,
+  refine (coe_fn_add _ _).trans _,
+  filter_upwards [coe_fn_pos_part (g - f), coe_fn_sub g f],
+  intros a ha ha_sub,
+  rw [pi.add_apply, ha, add_sup_eq_add_sup_add, ha_sub, pi.sub_apply, add_sub_cancel'_right,
+    add_zero, _root_.sup_comm],
+end
+
+lemma coe_fn_inf (f g : Lp E p μ) : ⇑(f ⊓ g) =ᵐ[μ] λ a, f a ⊓ g a :=
+begin
+  rw inf_eq_neg_sup_neg,
+  refine (coe_fn_neg _).trans _,
+  filter_upwards [coe_fn_sup (-f) (-g), coe_fn_neg f, coe_fn_neg g],
+  intros a ha ha_f ha_g,
+  rw [pi.neg_apply, ha, ha_f, ha_g, neg_sup_eq_neg_inf_neg, pi.neg_apply, pi.neg_apply, neg_neg,
+    neg_neg],
+end
+
+lemma sup_le (f g f' : Lp E p μ) (hff' : f ≤ f') (hgf' : g ≤ f') : f ⊔ g ≤ f' :=
+begin
+  rw ← coe_fn_le at hff' hgf' ⊢,
+  filter_upwards [coe_fn_sup f g, hff', hgf'],
+  intros a ha haf hag,
+  rw ha,
+  exact sup_le haf hag,
+end
+
+instance : semilattice_sup (Lp E p μ) :=
+{ sup := has_sup.sup,
+  le_sup_left := le_sup_left,
+  le_sup_right := le_sup_right,
+  sup_le := sup_le,
+  ..subtype.partial_order _}
+
 end pos_part
 end Lp
 end measure_theory
