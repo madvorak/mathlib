@@ -14,29 +14,29 @@ import analysis.normed_space.lattice_ordered_group
 open topological_space measure_theory lattice_ordered_comm_group
 open_locale ennreal
 
-variables {α : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
+variables {α E : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
+  [normed_lattice_add_comm_group E] [measurable_space E] [borel_space E]
+  [second_countable_topology E]
 
 namespace measure_theory
 
 namespace Lp
 
 section order
-variables {G : Type*} [normed_lattice_add_comm_group G]
-  [measurable_space G] [borel_space G] [second_countable_topology G]
 
-lemma coe_fn_le (f g : Lp G p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
+lemma coe_fn_le (f g : Lp E p μ) : f ≤ᵐ[μ] g ↔ f ≤ g :=
 by rw [← subtype.coe_le_coe, ← ae_eq_fun.coe_fn_le, ← coe_fn_coe_base, ← coe_fn_coe_base]
 
-lemma coe_fn_nonneg (f : Lp G p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
+lemma coe_fn_nonneg (f : Lp E p μ) : 0 ≤ᵐ[μ] f ↔ 0 ≤ f :=
 begin
   rw ← Lp.coe_fn_le,
-  have h0 := Lp.coe_fn_zero G p μ,
+  have h0 := Lp.coe_fn_zero E p μ,
   split; intro h; filter_upwards [h, h0]; intros a h1 h2,
   { rwa h2, },
   { rwa ← h2, },
 end
 
-instance : covariant_class (Lp G p μ) (Lp G p μ) has_add.add has_le.le :=
+instance : covariant_class (Lp E p μ) (Lp E p μ) has_add.add has_le.le :=
 begin
   refine ⟨λ f g₁ g₂ hg₁₂, _⟩,
   rw ← Lp.coe_fn_le at hg₁₂ ⊢,
@@ -48,16 +48,13 @@ begin
   exact add_le_add le_rfl h3,
 end
 
-instance : ordered_add_comm_group (Lp G p μ) :=
+instance : ordered_add_comm_group (Lp E p μ) :=
 { add_le_add_left := λ f g hfg f', add_le_add_left hfg f',
   ..subtype.partial_order _, ..add_subgroup.to_add_comm_group _}
 
 end order
 
 section pos_part
-
-variables {E : Type*} [normed_lattice_add_comm_group E]
-  [measurable_space E] [borel_space E] [second_countable_topology E]
 
 /-- Positive part of a function in `L^p`. -/
 def pos_part (f : Lp E p μ) : Lp E p μ :=
