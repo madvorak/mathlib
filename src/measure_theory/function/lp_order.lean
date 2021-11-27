@@ -183,18 +183,10 @@ end
 lemma neg_part_nonpos (f : Lp E p μ) : neg_part f ≤ 0 := sorry
 
 lemma le_sup_left (f g : Lp E p μ) : f ≤ f ⊔ g :=
-begin
-  rw sup_eq_left_add,
-  nth_rewrite 0 ← add_zero f,
-  exact add_le_add le_rfl (pos_part_nonneg _),
-end
+by { rw sup_eq_left_add, nth_rewrite 0 ← add_zero f, exact add_le_add le_rfl (pos_part_nonneg _), }
 
 lemma le_sup_right (f g : Lp E p μ) : g ≤ f ⊔ g :=
-begin
-  rw sup_eq_right_add,
-  nth_rewrite 0 ← add_zero g,
-  exact add_le_add le_rfl (pos_part_nonneg _),
-end
+by { rw sup_eq_right_add, nth_rewrite 0 ← add_zero g, exact add_le_add le_rfl (pos_part_nonneg _) }
 
 lemma coe_fn_sup (f g : Lp E p μ) : ⇑(f ⊔ g) =ᵐ[μ] λ a, f a ⊔ g a :=
 begin
@@ -225,12 +217,68 @@ begin
   exact sup_le haf hag,
 end
 
-instance : semilattice_sup (Lp E p μ) :=
+lemma inf_le_left (f g : Lp E p μ) : f ⊓ g ≤ f :=
+by { rw ← coe_fn_le, refine (coe_fn_inf f g).mono (λ a ha, _), rw ha, exact inf_le_left, }
+
+lemma inf_le_right (f g : Lp E p μ) : f ⊓ g ≤ g :=
+by { rw ← coe_fn_le, refine (coe_fn_inf f g).mono (λ a ha, _), rw ha, exact inf_le_right, }
+
+lemma le_inf (f' f g : Lp E p μ) (hff' : f' ≤ f) (hgf' : f' ≤ g) : f' ≤ f ⊓ g :=
+begin
+  rw ← coe_fn_le at hff' hgf' ⊢,
+  filter_upwards [coe_fn_inf f g, hff', hgf'],
+  intros a ha haf hag,
+  rw ha,
+  exact le_inf haf hag,
+end
+
+instance : lattice (Lp E p μ) :=
 { sup := has_sup.sup,
   le_sup_left := le_sup_left,
   le_sup_right := le_sup_right,
   sup_le := sup_le,
+  inf := has_inf.inf,
+  inf_le_left := inf_le_left,
+  inf_le_right := inf_le_right,
+  le_inf := le_inf,
   ..subtype.partial_order _}
+
+lemma pos_eq_pos_part (f : Lp E p μ) : pos f = pos_part f :=
+begin
+  rw lattice_ordered_comm_group.pos,
+  exact (pos_part_eq_sup_zero f).symm,
+end
+
+lemma neg_eq_neg_part (f : Lp E p μ) : neg f = neg_part f :=
+by rw [neg_eq_pos_neg, pos_eq_pos_part, neg_part]
+
+lemma abs_eq_pos_part_add_neg_part (f : Lp E p μ) : |f| = pos_part f + neg_part f :=
+by rw [pos_add_neg, pos_eq_pos_part, neg_eq_neg_part]
+
+lemma coe_fn_abs (f : Lp E p μ) : ⇑(|f|) =ᵐ[μ] λ a, |f a| :=
+begin
+  rw abs_eq_pos_part_add_neg_part,
+  refine (coe_fn_add _ _).trans _,
+  filter_upwards [coe_fn_pos_part f, coe_fn_neg_part f],
+  intros a ha_pos ha_neg,
+  rw [pi.add_apply, ha_pos, ha_neg, pos_add_neg, lattice_ordered_comm_group.pos,
+    lattice_ordered_comm_group.neg, add_right_inj, neg_inf_eq_sup_neg, neg_zero],
+end
+
+lemma solid (f g : Lp E p μ) (h : |f| ≤ |g|) : ∥f∥ ≤ ∥g∥ :=
+begin
+  rw ← coe_fn_le at h,
+  refine norm_le_norm_of_ae_le _,
+  filter_upwards [h, coe_fn_abs f, coe_fn_abs g],
+  intros a h_le haf hag,
+  rw [haf, hag] at h_le,
+  exact solid h_le,
+end
+
+noncomputable
+instance [fact (1 ≤ p)] : normed_lattice_add_comm_group (Lp E p μ) :=
+{ add_le_add_left := λ f g h f', add_le_add_left h _,
+  solid := solid, }
 
 end pos_part
 end Lp
