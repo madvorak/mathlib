@@ -180,7 +180,7 @@ begin
   exact le_sup_right,
 end
 
-lemma neg_part_nonpos (f : Lp E p μ) : neg_part f ≤ 0 := sorry
+lemma neg_part_nonneg (f : Lp E p μ) : 0 ≤ neg_part f := pos_part_nonneg _
 
 lemma le_sup_left (f g : Lp E p μ) : f ≤ f ⊔ g :=
 by { rw sup_eq_left_add, nth_rewrite 0 ← add_zero f, exact add_le_add le_rfl (pos_part_nonneg _), }
