@@ -4,6 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Rémy Degenne
 -/
 import measure_theory.function.lp_space
+import analysis.normed_space.order.lattice_linear_ordered_group
 
 /-!
 # Order related properties of Lp spaces
@@ -14,24 +15,6 @@ open topological_space measure_theory
 open_locale ennreal
 
 variables {α : Type*} [measurable_space α] {μ : measure α} {p : ℝ≥0∞}
-
-/-- TODO -/
-class lattice_normed_linear_ordered_group (α : Type*) extends normed_linear_ordered_group α :=
-(norm_le_of_abs_le' : ∀ x y : α, |x| ≤ |y| → ∥x∥ ≤ ∥y∥)
-
-noncomputable
-instance real.lattice_normed_linear_ordered_group : lattice_normed_linear_ordered_group ℝ :=
-{norm_le_of_abs_le' := λ x y h, by rwa [real.norm_eq_abs] }
-
-lemma norm_le_of_abs_le {E} [lattice_normed_linear_ordered_group E] (x y : E) (h : |x| ≤ |y|) :
-  ∥x∥ ≤ ∥y∥ :=
-lattice_normed_linear_ordered_group.norm_le_of_abs_le' x y h
-
-lemma lipschitz_with_max' {E} [lattice_normed_linear_ordered_group E] :
-  lipschitz_with 1 (λ (x : E), max x 0) :=
-lipschitz_with.of_dist_le_mul $ λ x y, by
-{ simp only [one_mul, nonneg.coe_one, dist_eq_norm],
-  exact norm_le_of_abs_le _ _ (abs_max_sub_max_le_abs x y 0), }
 
 namespace measure_theory
 

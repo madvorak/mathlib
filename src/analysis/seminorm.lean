@@ -4,7 +4,7 @@ Released under Apache 2.0 license as described in the file LICENSE.
 Authors: Jean Lo, Bhavik Mehta, Yaël Dillies
 -/
 import analysis.convex.function
-import analysis.normed_space.ordered
+import analysis.normed_space.order.ordered
 import data.real.pointwise
 import data.set.intervals
 
