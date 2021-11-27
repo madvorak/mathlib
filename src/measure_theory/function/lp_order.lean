@@ -68,12 +68,10 @@ lemma neg_part_eq_pos_part_neg (f : Lp E p μ) : neg_part f = pos_part (-f) := r
 @[norm_cast]
 lemma coe_pos_part (f : Lp ℝ p μ) : (pos_part f : α →ₘ[μ] ℝ) = (f : α →ₘ[μ] ℝ).pos_part := rfl
 
-lemma coe_fn_pos_part (f : Lp E p μ) :
-  pos_part f =ᵐ[μ] λ a, (f a) ⊔ 0 :=
+lemma coe_fn_pos_part (f : Lp E p μ) : pos_part f =ᵐ[μ] λ a, (f a) ⊔ 0 :=
 by { refine (lipschitz_with.coe_fn_comp_Lp _ _ _).trans _, refl, }
 
-lemma coe_fn_neg_part_eq_max (f : Lp E p μ) :
-  neg_part f =ᵐ[μ] λ a, (-f a) ⊔ 0 :=
+lemma coe_fn_neg_part_eq_max (f : Lp E p μ) : neg_part f =ᵐ[μ] λ a, (-f a) ⊔ 0 :=
 begin
   rw neg_part,
   refine (coe_fn_pos_part (-f)).trans _,
@@ -83,8 +81,7 @@ begin
   refl,
 end
 
-lemma coe_fn_neg_part (f : Lp E p μ) :
-  neg_part f =ᵐ[μ] λ a, - ((f a) ⊓ 0) :=
+lemma coe_fn_neg_part (f : Lp E p μ) : neg_part f =ᵐ[μ] λ a, - ((f a) ⊓ 0) :=
 begin
   refine (coe_fn_neg_part_eq_max f).trans (filter.eventually_of_forall $ λ x, _),
   rw [neg_inf_eq_sup_neg,  neg_zero],
@@ -94,8 +91,7 @@ lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, pos_p
 lipschitz_with.continuous_comp_Lp _ _
 
 lemma continuous_neg_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, neg_part f) :=
-have eq : (λ f : Lp E p μ, neg_part f) = (λ f : Lp E p μ, pos_part (-f)) := rfl,
-by { rw eq, exact continuous_pos_part.comp continuous_neg }
+continuous_pos_part.comp continuous_neg
 
 lemma pos_part_eq_zero_iff (f : Lp E p μ) : pos_part f = 0 ↔ f ≤ 0 :=
 begin
