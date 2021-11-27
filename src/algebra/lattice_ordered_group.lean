@@ -531,6 +531,16 @@ begin
     apply lattice_ordered_comm_group.mabs_pos, }
 end
 
+@[to_additive abs_sup_sub_sup_le_abs]
+lemma mabs_sup_div_sup_le_mabs [covariant_class α α (*) (≤)] (a b c : α) :
+  |(a ⊔ c) / (b ⊔ c)| ≤ |a / b| :=
+le_sup_left.trans (m_Birkhoff_inequalities a b c)
+
+@[to_additive abs_inf_sub_inf_le_abs]
+lemma mabs_inf_div_inf_le_mabs [covariant_class α α (*) (≤)] (a b c : α) :
+  |(a ⊓ c) / (b ⊓ c)| ≤ |a / b| :=
+le_sup_right.trans (m_Birkhoff_inequalities a b c)
+
 -- Banasiak Proposition 2.12, Zaanen 2nd lecture
 /--
 Let `α` be a lattice ordered commutative group. Then the absolute value satisfies the triangle

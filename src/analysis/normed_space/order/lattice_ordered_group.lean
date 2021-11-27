@@ -111,24 +111,19 @@ le_antisymm (solid (le_of_eq (lattice_ordered_comm_group.abs_idempotent a).symm)
 lemma norm_inf_sub_inf_le_add_norm {α : Type*} [normed_lattice_add_comm_group α] (a b c d : α) :
   ∥a ⊓ b - c ⊓ d∥ ≤ ∥a - c∥ + ∥b - d∥ :=
 begin
-  intros,
-    nth_rewrite_rhs 0 ← norm_abs_eq_norm,
-    nth_rewrite_rhs 1 ← norm_abs_eq_norm,
-    apply le_trans (solid _) (norm_add_le (|a - c|) (|b - d|)),
-    rw lattice_ordered_comm_group.abs_pos_eq (|a - c| + |b - d|),
-    { calc |a ⊓ b - c ⊓ d| =
-        |a ⊓ b - c ⊓ b + (c ⊓ b - c ⊓ d)| : by { rw sub_add_sub_cancel, }
-      ... ≤ |a ⊓ b - c ⊓ b| + |c ⊓ b - c ⊓ d| : lattice_ordered_comm_group.abs_triangle _ _
-      ... ≤ |a -c| + |b - d| : by
-        { apply add_le_add,
-          { exact
-            (sup_le_iff.elim_left (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right },
-          { rw inf_comm,
-          nth_rewrite 1 inf_comm,
-          exact (sup_le_iff.elim_left
-	   (lattice_ordered_comm_group.Birkhoff_inequalities _ _ _)).right } }, },
-    { exact add_nonneg (lattice_ordered_comm_group.abs_pos (a - c))
-        (lattice_ordered_comm_group.abs_pos (b - d)), },
+  rw [← norm_abs_eq_norm (a - c), ← norm_abs_eq_norm (b - d)],
+  refine le_trans (solid _) (norm_add_le (|a - c|) (|b - d|)),
+  rw lattice_ordered_comm_group.abs_pos_eq (|a - c| + |b - d|)
+    (add_nonneg (lattice_ordered_comm_group.abs_pos (a - c))
+      (lattice_ordered_comm_group.abs_pos (b - d))),
+  calc |a ⊓ b - c ⊓ d| =
+    |a ⊓ b - c ⊓ b + (c ⊓ b - c ⊓ d)| : by { rw sub_add_sub_cancel, }
+  ... ≤ |a ⊓ b - c ⊓ b| + |c ⊓ b - c ⊓ d| : lattice_ordered_comm_group.abs_triangle _ _
+  ... ≤ |a -c| + |b - d| : by
+    { apply add_le_add,
+      { exact lattice_ordered_comm_group.abs_inf_sub_inf_le_abs _ _ _, },
+      { rw [@inf_comm _ _ c, @inf_comm _ _ c],
+        exact lattice_ordered_comm_group.abs_inf_sub_inf_le_abs _ _ _, } },
 end
 
 /--
@@ -155,3 +150,16 @@ Let `α` be a normed lattice ordered group. Then `α` is a topological lattice i
 instance normed_lattice_add_comm_group_topological_lattice {α : Type*}
   [normed_lattice_add_comm_group α] : topological_lattice α :=
 topological_lattice.mk
+
+lemma norm_sup_sub_sup_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
+  ∥x ⊔ z - (y ⊔ z)∥ ≤ ∥x - y∥ :=
+solid (lattice_ordered_comm_group.abs_sup_sub_sup_le_abs x y z)
+
+lemma norm_inf_sub_inf_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
+  ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
+solid (lattice_ordered_comm_group.abs_inf_sub_inf_le_abs x y z)
+
+lemma lipschitz_with_sup_right {α : Type*} [normed_lattice_add_comm_group α] (z : α) :
+  lipschitz_with 1 (λ x, x ⊔ z) :=
+lipschitz_with.of_dist_le_mul $ λ x y, by
+{ rw [nonneg.coe_one, one_mul, dist_eq_norm, dist_eq_norm], exact norm_sup_sub_sup_le_norm x y z, }
