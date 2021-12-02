@@ -6,6 +6,7 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 import measure_theory.integral.lebesgue
 import order.filter.germ
 import topology.continuous_function.algebra
+import topology.order.lattice
 
 /-!
 
@@ -277,12 +278,89 @@ lift_rel_iff_coe_fn.symm
 instance [partial_order β] : partial_order (α →ₘ[μ] β) :=
 partial_order.lift to_germ to_germ_injective
 
+section lattice
+
+variables [lattice β] [topological_space β] [topological_lattice β] [borel_space β]
+  [second_countable_topology β]
+
+instance : has_sup (α →ₘ[μ] β) :=
+{ sup := λ f g, ae_eq_fun.comp₂ (⊔) continuous_sup.measurable f g }
+
+instance : has_inf (α →ₘ[μ] β) :=
+{ inf := λ f g, ae_eq_fun.comp₂ (⊓) continuous_inf.measurable f g }
+
+lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
+lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
+
+lemma _root_.ae_measurable.sup {f g : α → β} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (f ⊔ g) μ :=
+begin
+  refine ⟨⇑((ae_eq_fun.mk f hf) ⊔ (ae_eq_fun.mk g hg)), ae_eq_fun.measurable _, _⟩,
+  filter_upwards [coe_fn_sup (ae_eq_fun.mk f hf) (ae_eq_fun.mk g hg), coe_fn_mk f hf,
+    coe_fn_mk g hg],
+  intros a ha_sup haf hag,
+  rw [ha_sup, haf, hag, pi.sup_apply],
+end
+
+lemma _root_.ae_measurable.inf {f g : α → β} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
+  ae_measurable (f ⊓ g) μ :=
+begin
+  refine ⟨⇑((ae_eq_fun.mk f hf) ⊓ (ae_eq_fun.mk g hg)), ae_eq_fun.measurable _, _⟩,
+  filter_upwards [coe_fn_inf (ae_eq_fun.mk f hf) (ae_eq_fun.mk g hg), coe_fn_mk f hf,
+    coe_fn_mk g hg],
+  intros a ha_sup haf hag,
+  rw [ha_sup, haf, hag, pi.inf_apply],
+end
+
+private lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
+
+private lemma le_sup_right (f g : α →ₘ[μ] β) : g ≤ f ⊔ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_right, }
+
+private lemma sup_le (f g f' : α →ₘ[μ] β) (hf : f ≤ f') (hg : g ≤ f') : f ⊔ g ≤ f' :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_sup f g],
+  intros a haf hag ha_sup,
+  rw ha_sup,
+  exact sup_le haf hag,
+end
+
+private lemma inf_le_left (f g : α →ₘ[μ] β) : f ⊓ g ≤ f :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_left, }
+
+private lemma inf_le_right (f g : α →ₘ[μ] β) : f ⊓ g ≤ g :=
+by { rw ← coe_fn_le, filter_upwards [coe_fn_inf f g], intros a ha,  rw ha, exact inf_le_right, }
+
+private lemma le_inf (f' f g : α →ₘ[μ] β) (hf : f' ≤ f) (hg : f' ≤ g) : f' ≤ f ⊓ g :=
+begin
+  rw ← coe_fn_le at hf hg ⊢,
+  filter_upwards [hf, hg, coe_fn_inf f g],
+  intros a haf hag ha_sup,
+  rw ha_sup,
+  exact le_inf haf hag,
+end
+
+instance : lattice (α →ₘ[μ] β) :=
+{ sup := has_sup.sup,
+  le_sup_left := le_sup_left,
+  le_sup_right := le_sup_right,
+  sup_le := sup_le,
+  inf := has_inf.inf,
+  inf_le_left := inf_le_left,
+  inf_le_right := inf_le_right,
+  le_inf := le_inf,
+  ..ae_eq_fun.partial_order}
+
 /- TODO: Prove `L⁰` space is a lattice if β is linear order.
          What if β is only a lattice? -/
 
 -- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
 -- { sup := comp₂ (⊔) (_),
 --    .. ae_eq_fun.partial_order }
+
+end lattice
 
 end order
 

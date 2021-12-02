@@ -158,29 +158,63 @@ topological_lattice.mk
 
 open lattice_ordered_comm_group
 
-lemma norm_sup_sub_sup_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
-  ∥x ⊔ z - (y ⊔ z)∥ ≤ ∥x - y∥ :=
+variables {α : Type*} [normed_lattice_add_comm_group α]
+
+lemma norm_sup_sub_sup_le_norm (x y z : α) : ∥x ⊔ z - (y ⊔ z)∥ ≤ ∥x - y∥ :=
 solid (abs_sup_sub_sup_le_abs x y z)
 
-lemma norm_inf_sub_inf_le_norm {α : Type*} [normed_lattice_add_comm_group α] (x y z : α) :
-  ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
+lemma norm_inf_sub_inf_le_norm (x y z : α) : ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
 solid (abs_inf_sub_inf_le_abs x y z)
 
-lemma lipschitz_with_sup_right {α : Type*} [normed_lattice_add_comm_group α] (z : α) :
-  lipschitz_with 1 (λ x, x ⊔ z) :=
+lemma abs_pos_le (x : α) : |pos x| ≤ |x| :=
+begin
+  have h := abs_sup_sub_sup_le_abs x 0 0,
+  simp only [sub_zero, sup_idem] at h,
+  exact h,
+end
+
+lemma abs_inf_zero_le (x : α) : |x ⊓ 0| ≤ |x| :=
+begin
+  have h := abs_inf_sub_inf_le_abs x 0 0,
+  simp only [sub_zero, inf_idem] at h,
+  exact h,
+end
+
+lemma norm_sup_le_add_norm (x y : α) : ∥x ⊔ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  rw ← sub_le_iff_le_add,
+  have h_norm_sub : ∥x ⊔ y - (0 ⊔ y)∥ ≤ ∥x - 0∥, from norm_sup_sub_sup_le_norm x 0 y,
+  have h_sub_norm : ∥x ⊔ y∥ - ∥0 ⊔ y∥ ≤ ∥x - 0∥, from (norm_sub_norm_le _ _).trans h_norm_sub,
+  rw sub_zero at h_sub_norm,
+  refine le_trans _ h_sub_norm,
+  refine sub_le_sub le_rfl (solid _),
+  rw sup_comm,
+  exact abs_pos_le _,
+end
+
+lemma norm_inf_le_add_norm (x y : α) : ∥x ⊓ y∥ ≤ ∥x∥ + ∥y∥ :=
+begin
+  rw ← sub_le_iff_le_add,
+  have h_norm_sub : ∥x ⊓ y - (0 ⊓ y)∥ ≤ ∥x - 0∥, from norm_inf_sub_inf_le_norm x 0 y,
+  have h_sub_norm : ∥x ⊓ y∥ - ∥0 ⊓ y∥ ≤ ∥x - 0∥, from (norm_sub_norm_le _ _).trans h_norm_sub,
+  rw sub_zero at h_sub_norm,
+  refine le_trans _ h_sub_norm,
+  refine sub_le_sub le_rfl (solid _),
+  rw inf_comm,
+  exact abs_inf_zero_le _,
+end
+
+lemma lipschitz_with_sup_right (z : α) : lipschitz_with 1 (λ x, x ⊔ z) :=
 lipschitz_with.of_dist_le_mul $ λ x y, by
 { rw [nonneg.coe_one, one_mul, dist_eq_norm, dist_eq_norm], exact norm_sup_sub_sup_le_norm x y z, }
 
-lemma lipschitz_with_pos {α : Type*} [normed_lattice_add_comm_group α] :
-  lipschitz_with 1 (@lattice_ordered_comm_group.pos α _ _) :=
+lemma lipschitz_with_pos : lipschitz_with 1 (@lattice_ordered_comm_group.pos α _ _) :=
 lipschitz_with_sup_right 0
 
-lemma continuous_pos {α : Type*} [normed_lattice_add_comm_group α] :
-  continuous (@lattice_ordered_comm_group.pos α _ _) :=
+lemma continuous_pos : continuous (@lattice_ordered_comm_group.pos α _ _) :=
 lipschitz_with.continuous lipschitz_with_pos
 
-lemma continuous_neg' {α : Type*} [normed_lattice_add_comm_group α] :
-  continuous (@lattice_ordered_comm_group.neg α _ _) :=
+lemma continuous_neg' : continuous (@lattice_ordered_comm_group.neg α _ _) :=
 continuous_pos.comp continuous_neg
 
 lemma pos_eq_zero_iff {E} [add_comm_group E] [lattice E] (x : E) : pos x = 0 ↔ x ≤ 0 :=
