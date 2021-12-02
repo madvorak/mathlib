@@ -230,7 +230,7 @@ lemma continuous_pos_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, pos_p
 continuous_pos
 
 lemma continuous_neg_part [fact (1 ≤ p)] : continuous (λ f : Lp E p μ, neg_part f) :=
-continuous_pos_part.comp continuous_neg
+continuous_neg'
 
 end Lp
 end measure_theory
