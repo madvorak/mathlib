@@ -1178,16 +1178,16 @@ set_to_fun_measure_zero (dominated_fin_meas_additive_weighted_smul _) rfl
 begin
   -- First we consider the “degenerate” case `c = ∞`
   rcases eq_or_ne c ∞ with rfl|hc,
-  { rw [ennreal.top_to_real, zero_smul, integral_eq_set_to_fun],
-    refine set_to_fun_measure_zero' _ (λ s hs hμs, _),
-    simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
-      ne.def, not_false_iff] at hμs,
-    push_neg at hμs,
-    simp only [hμs.right, measure.smul_apply, mul_zero], },
-  -- Main case: `c < ∞`
+  { rw [ennreal.top_to_real, zero_smul, integral_eq_set_to_fun, set_to_fun_top_smul_measure], },
+  -- Main case: `c ≠ ∞`
   simp_rw [integral_eq_set_to_fun, ← set_to_fun_smul_left],
-  refine (set_to_fun_congr_left_smul' c hc _ _ (λ s hs hμs, _) f).symm,
-  exact (weighted_smul_smul_measure μ c).symm,
+  have hdfma :
+      dominated_fin_meas_additive μ (weighted_smul (c • μ) : set α → E →L[ℝ] E) c.to_real,
+    from mul_one c.to_real
+      ▸ (dominated_fin_meas_additive_weighted_smul (c • μ)).of_smul_measure c hc,
+  have hdfma_smul := (dominated_fin_meas_additive_weighted_smul (c • μ)),
+  rw ← set_to_fun_congr_smul_measure c hc hdfma hdfma_smul f,
+  exact set_to_fun_congr_left' _ _ (λ s hs hμs, weighted_smul_smul_measure μ c) f,
 end
 
 lemma integral_map_of_measurable {β} [measurable_space β] {φ : α → β} (hφ : measurable φ)

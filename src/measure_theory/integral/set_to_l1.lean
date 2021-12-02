@@ -1857,6 +1857,15 @@ begin
   exact add_le_add bot_le le_rfl,
 end
 
+lemma set_to_fun_top_smul_measure (hT : dominated_fin_meas_additive (∞ • μ) T C) (f : α → E) :
+  set_to_fun hT f = 0 :=
+begin
+  refine set_to_fun_measure_zero' hT (λ s hs hμs, _),
+  simp only [true_and, measure.smul_apply, with_top.mul_eq_top_iff, eq_self_iff_true, top_ne_zero,
+    ne.def, not_false_iff, auto.not_or_eq, not_not] at hμs,
+  simp only [hμs.right, measure.smul_apply, mul_zero],
+end
+
 lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
   (hT : dominated_fin_meas_additive μ T C) (hT_smul : dominated_fin_meas_additive (c • μ) T C')
   (f : α → E) :
@@ -1871,28 +1880,6 @@ begin
   refine set_to_fun_congr_measure c⁻¹ c _ hc_ne_top (le_of_eq _) le_rfl hT hT_smul f,
   { simp [hc0], },
   { rw [smul_smul, ennreal.inv_mul_cancel hc0 hc_ne_top, one_smul], },
-end
-
-lemma set_to_fun_congr_left_smul (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
-  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive (c • μ) T' C')
-  (h : T = T') (f : α → E) :
-  set_to_fun hT f = set_to_fun hT' f :=
-begin
-  have hT'_μ : dominated_fin_meas_additive μ T' (c.to_real * C'),
-    from hT'.of_smul_measure c hc_ne_top,
-  rw set_to_fun_congr_left hT hT'_μ h f,
-  exact set_to_fun_congr_smul_measure c hc_ne_top hT'_μ hT' f,
-end
-
-lemma set_to_fun_congr_left_smul' (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
-  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive (c • μ) T' C')
-  (h : ∀ s, measurable_set s → μ s ≠ ∞ → T s = T' s) (f : α → E) :
-  set_to_fun hT f = set_to_fun hT' f :=
-begin
-  have hT'_μ : dominated_fin_meas_additive μ T' (c.to_real * C'),
-    from hT'.of_smul_measure c hc_ne_top,
-  rw set_to_fun_congr_left' hT hT'_μ h f,
-  exact set_to_fun_congr_smul_measure c hc_ne_top hT'_μ hT' f,
 end
 
 lemma norm_set_to_fun_le_mul_norm (hT : dominated_fin_meas_additive μ T C) (f : α →₁[μ] E)
