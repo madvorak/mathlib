@@ -799,7 +799,7 @@ begin
 end
 
 lemma ennnorm_integral_le_lintegral_ennnorm (f : α → E) :
-  (nnnorm (∫ a, f a ∂μ) : ℝ≥0∞) ≤ ∫⁻ a, (nnnorm (f a)) ∂μ :=
+  (∥∫ a, f a ∂μ∥₊ : ℝ≥0∞) ≤ ∫⁻ a, ∥f a∥₊ ∂μ :=
 by { simp_rw [← of_real_norm_eq_coe_nnnorm], apply ennreal.of_real_le_of_le_to_real,
   exact norm_integral_le_lintegral_norm f }
 
@@ -809,8 +809,7 @@ by simp [integral_congr_ae hf, integral_zero]
 /-- If `f` has finite integral, then `∫ x in s, f x ∂μ` is absolutely continuous in `s`: it tends
 to zero as `μ s` tends to zero. -/
 lemma has_finite_integral.tendsto_set_integral_nhds_zero {ι} {f : α → E}
-  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α}
-  (hs : tendsto (μ ∘ s) l (𝓝 0)) :
+  (hf : has_finite_integral f μ) {l : filter ι} {s : ι → set α} (hs : tendsto (μ ∘ s) l (𝓝 0)) :
   tendsto (λ i, ∫ x in s i, f x ∂μ) l (𝓝 0) :=
 begin
   rw [tendsto_zero_iff_norm_tendsto_zero],
@@ -1149,32 +1148,25 @@ end
 
 variable {ν : measure α}
 
-private lemma integral_add_measure_of_measurable
-  {f : α → E} (fmeas : measurable f) (hμ : integrable f μ) (hν : integrable f ν) :
-  ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
-begin
-  have hfi := hμ.add_measure hν,
-  refine tendsto_nhds_unique (tendsto_integral_approx_on_univ_of_measurable fmeas hfi) _,
-  simpa only [simple_func.integral_add_measure _
-    (simple_func.integrable_approx_on_univ fmeas hfi _)]
-    using (tendsto_integral_approx_on_univ_of_measurable fmeas hμ).add
-      (tendsto_integral_approx_on_univ_of_measurable fmeas hν)
-end
-
 lemma integral_add_measure {f : α → E} (hμ : integrable f μ) (hν : integrable f ν) :
   ∫ x, f x ∂(μ + ν) = ∫ x, f x ∂μ + ∫ x, f x ∂ν :=
 begin
-  have h : ae_measurable f (μ + ν) := hμ.ae_measurable.add_measure hν.ae_measurable,
-  let g := h.mk f,
-  have A : f =ᵐ[μ + ν] g := h.ae_eq_mk,
-  have B : f =ᵐ[μ] g := A.filter_mono (ae_mono (measure.le_add_right (le_refl μ))),
-  have C : f =ᵐ[ν] g := A.filter_mono (ae_mono (measure.le_add_left (le_refl ν))),
-  calc ∫ x, f x ∂(μ + ν) = ∫ x, g x ∂(μ + ν) : integral_congr_ae A
-  ... = ∫ x, g x ∂μ + ∫ x, g x ∂ν :
-    integral_add_measure_of_measurable h.measurable_mk ((integrable_congr B).1 hμ)
-      ((integrable_congr C).1 hν)
-  ... = ∫ x, f x ∂μ + ∫ x, f x ∂ν :
-    by { congr' 1, { exact integral_congr_ae B.symm }, { exact integral_congr_ae C.symm } }
+  have hfi := hμ.add_measure hν,
+  simp_rw [integral_eq_set_to_fun],
+  have hμ_dfma : dominated_fin_meas_additive (μ + ν) (weighted_smul μ : set α → E →L[ℝ] E) 1,
+    from dominated_fin_meas_additive.add_measure_right μ ν
+      (dominated_fin_meas_additive_weighted_smul μ) zero_le_one,
+  have hν_dfma : dominated_fin_meas_additive (μ + ν) (weighted_smul ν : set α → E →L[ℝ] E) 1,
+    from dominated_fin_meas_additive.add_measure_left μ ν
+      (dominated_fin_meas_additive_weighted_smul ν) zero_le_one,
+  rw [← set_to_fun_congr_measure_of_add_right hμ_dfma (dominated_fin_meas_additive_weighted_smul μ)
+      f hfi,
+    ← set_to_fun_congr_measure_of_add_left hν_dfma (dominated_fin_meas_additive_weighted_smul ν)
+      f hfi],
+  refine set_to_fun_add_left' _ _ _ (λ s hs hμνs, _) f,
+  rw [measure.coe_add, pi.add_apply, add_ne_top] at hμνs,
+  rw [weighted_smul, weighted_smul, weighted_smul, ← add_smul, measure.coe_add, pi.add_apply,
+    to_real_add hμνs.1 hμνs.2],
 end
 
 @[simp] lemma integral_zero_measure {m : measurable_space α} (f : α → E) :

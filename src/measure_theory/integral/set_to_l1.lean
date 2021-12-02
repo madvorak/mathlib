@@ -221,6 +221,16 @@ begin
   exact h s hs,
 end
 
+lemma add_measure_right {m : measurable_space α}
+  (μ ν : measure α) (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive (μ + ν) T C :=
+ of_measure_le (measure.le_add_right le_rfl) hT hC
+
+lemma add_measure_left {m : measurable_space α}
+  (μ ν : measure α) (hT : dominated_fin_meas_additive ν T C) (hC : 0 ≤ C) :
+  dominated_fin_meas_additive (μ + ν) T C :=
+ of_measure_le (measure.le_add_left le_rfl) hT hC
+
 lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
   (hT : dominated_fin_meas_additive (c • μ) T C) :
   dominated_fin_meas_additive μ T (c.to_real * C) :=
@@ -1735,23 +1745,28 @@ end
 
 /-- Auxiliary lemma for `set_to_fun_congr_measure` -/
 lemma continuous_L1_to_L1 [borel_space G] [second_countable_topology G]
-  {μ' : measure α} (c c' : ℝ≥0∞) (hc : c ≠ ∞) (hc' : c' ≠ ∞)
-  (hc'0 : c' ≠ 0) (hμ_le : μ ≤ c • μ') (hμ'_le : μ' ≤ c' • μ) :
+  {μ' : measure α} (c' : ℝ≥0∞) (hc' : c' ≠ ∞) (hμ'_le : μ' ≤ c' • μ) :
   continuous (λ f : α →₁[μ] G,
-    ((integrable_iff_of_measure_le c c' hc hc' hμ_le hμ'_le f).mp
-      (L1.integrable_coe_fn f)).to_L1 f) :=
+    (integrable.of_measure_le c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) :=
 begin
+  by_cases hc'0 : c' = 0,
+  { have hμ'0 : μ' = 0,
+    { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
+    have h_im_zero : (λ f : α →₁[μ] G,
+        (integrable.of_measure_le c' hc' hμ'_le (L1.integrable_coe_fn f)).to_L1 f) = 0,
+      by { ext1 f, ext1, simp_rw hμ'0, simp only [ae_zero], },
+    rw h_im_zero,
+    exact continuous_zero, },
   rw metric.continuous_iff,
   intros f ε hε_pos,
   use (ε / 2) / c'.to_real,
   refine ⟨_, _⟩,
   { refine div_pos (half_pos hε_pos) _,
     rw to_real_pos_iff,
-    exact ⟨lt_of_le_of_ne (zero_le _) hc'0.symm, hc'⟩, },
+    exact ⟨lt_of_le_of_ne (zero_le _) (ne.symm hc'0), hc'⟩, },
   intros g hfg,
   rw Lp.dist_def at hfg ⊢,
-  let h_int := λ f' : α →₁[μ] G, ((integrable_iff_of_measure_le c c' hc hc' hμ_le hμ'_le f').mp
-      (L1.integrable_coe_fn f')),
+  let h_int := λ f' : α →₁[μ] G, (L1.integrable_coe_fn f').of_measure_le c' hc' hμ'_le,
   have : snorm (integrable.to_L1 g (h_int g) - integrable.to_L1 f (h_int f)) 1 μ'
       = snorm (g - f) 1 μ',
     from snorm_congr_ae ((integrable.coe_fn_to_L1 _).sub (integrable.coe_fn_to_L1 _)),
@@ -1776,32 +1791,17 @@ begin
   ... < ε : half_lt_self hε_pos,
 end
 
-lemma set_to_fun_congr_measure {μ' : measure α} (c c' : ℝ≥0∞) (hc : c ≠ ∞) (hc' : c' ≠ ∞)
-  (hμ_le : μ ≤ c • μ') (hμ'_le : μ' ≤ c' • μ)
-  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ' T C') (f : α → E) :
+lemma set_to_fun_congr_measure_of_integrable {μ' : measure α} (c' : ℝ≥0∞)
+  (hc' : c' ≠ ∞) (hμ'_le : μ' ≤ c' • μ)
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ' T C') (f : α → E)
+  (hfμ : integrable f μ) :
   set_to_fun hT f = set_to_fun hT' f :=
 begin
-  /- if `c = 0` or `c' = 0`, both measures are 0 and both `set_to_fun` are 0. -/
-  by_cases hc0 : c = 0,
-  { have hμ0 : μ = 0,
-    { rw ← measure.nonpos_iff_eq_zero', refine hμ_le.trans _, simp [hc0], },
-    have hμ'0 : μ' = 0,
-    { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hμ0], },
-    rw [set_to_fun_measure_zero hT hμ0, set_to_fun_measure_zero hT' hμ'0], },
-  by_cases hc'0 : c' = 0,
-  { have hμ'0 : μ' = 0,
-    { rw ← measure.nonpos_iff_eq_zero', refine hμ'_le.trans _, simp [hc'0], },
-    have hμ0 : μ = 0,
-    { rw ← measure.nonpos_iff_eq_zero', refine hμ_le.trans _, simp [hμ'0], },
-    rw [set_to_fun_measure_zero hT hμ0, set_to_fun_measure_zero hT' hμ'0], },
-  /- integrability for `μ` and `μ'` are equivalent. -/
-  have h_int : ∀ g : α → E, integrable g μ ↔ integrable g μ',
-    from integrable_iff_of_measure_le c c' hc hc' hμ_le hμ'_le,
-  /- if `f` is not integrable, both `set_to_fun` are 0. -/
-  by_cases hf : integrable f μ,
-  swap, { simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (mt (h_int f).mpr hf)], },
-  /- if `f` is integrable, we use `integrable.induction` -/
-  refine hf.induction _ _ _ _ _,
+  /- integrability for `μ` implies integrability for `μ'`. -/
+  have h_int : ∀ g : α → E, integrable g μ → integrable g μ',
+    from λ g hg, integrable.of_measure_le c' hc' hμ'_le hg,
+  /- We use `integrable.induction` -/
+  refine hfμ.induction _ _ _ _ _,
   { intros c s hs hμs,
     have hμ's : μ' s ≠ ∞,
     { refine ((hμ'_le s hs).trans_lt _).ne,
@@ -1810,16 +1810,51 @@ begin
     rw [set_to_fun_indicator_const hT hs hμs.ne, set_to_fun_indicator_const hT' hs hμ's], },
   { intros f₂ g₂ h_dish hf₂ hg₂ h_eq_f h_eq_g,
     rw [set_to_fun_add hT hf₂ hg₂,
-      set_to_fun_add hT' ((h_int f₂).mp hf₂) ((h_int g₂).mp hg₂), h_eq_f, h_eq_g], },
+      set_to_fun_add hT' (h_int f₂ hf₂) (h_int g₂ hg₂), h_eq_f, h_eq_g], },
   { refine is_closed_eq (continuous_set_to_fun hT) _,
     have : (λ f : α →₁[μ] E, set_to_fun hT' f)
-      = (λ f : α →₁[μ] E, set_to_fun hT' (((h_int f).mp (L1.integrable_coe_fn f)).to_L1 f)),
+      = (λ f : α →₁[μ] E, set_to_fun hT' ((h_int f (L1.integrable_coe_fn f)).to_L1 f)),
     { ext1 f, exact set_to_fun_congr_ae hT' (integrable.coe_fn_to_L1 _).symm, },
     rw this,
-    exact (continuous_set_to_fun hT').comp (continuous_L1_to_L1 c c' hc hc' hc'0 hμ_le hμ'_le), },
+    exact (continuous_set_to_fun hT').comp (continuous_L1_to_L1 c' hc' hμ'_le), },
   { intros f₂ g₂ hfg hf₂ hf_eq,
     have hfg' : f₂ =ᵐ[μ'] g₂, from (measure.absolutely_continuous_of_le_mul hμ'_le).ae_eq hfg,
     rw [← set_to_fun_congr_ae hT hfg, hf_eq, set_to_fun_congr_ae hT' hfg'], },
+end
+
+lemma set_to_fun_congr_measure {μ' : measure α} (c c' : ℝ≥0∞) (hc : c ≠ ∞) (hc' : c' ≠ ∞)
+  (hμ_le : μ ≤ c • μ') (hμ'_le : μ' ≤ c' • μ)
+  (hT : dominated_fin_meas_additive μ T C) (hT' : dominated_fin_meas_additive μ' T C') (f : α → E) :
+  set_to_fun hT f = set_to_fun hT' f :=
+begin
+  by_cases hf : integrable f μ,
+  { exact set_to_fun_congr_measure_of_integrable c' hc' hμ'_le hT hT' f hf, },
+  { /- if `f` is not integrable, both `set_to_fun` are 0. -/
+    have h_int : ∀ g : α → E, integrable g μ ↔ integrable g μ',
+      from integrable_iff_of_measure_le c c' hc hc' hμ_le hμ'_le,
+    simp_rw [set_to_fun_undef _ hf, set_to_fun_undef _ (mt (h_int f).mpr hf)], },
+end
+
+lemma set_to_fun_congr_measure_of_add_right {μ' : measure α}
+  (hT_add : dominated_fin_meas_additive (μ + μ') T C') (hT : dominated_fin_meas_additive μ T C)
+  (f : α → E) (hf : integrable f (μ + μ')) :
+  set_to_fun hT_add f = set_to_fun hT f :=
+begin
+  refine set_to_fun_congr_measure_of_integrable 1 one_ne_top _ hT_add hT f hf,
+  rw one_smul,
+  nth_rewrite 0 ← add_zero μ,
+  exact add_le_add le_rfl bot_le,
+end
+
+lemma set_to_fun_congr_measure_of_add_left {μ' : measure α}
+  (hT_add : dominated_fin_meas_additive (μ + μ') T C') (hT : dominated_fin_meas_additive μ' T C)
+  (f : α → E) (hf : integrable f (μ + μ')) :
+  set_to_fun hT_add f = set_to_fun hT f :=
+begin
+  refine set_to_fun_congr_measure_of_integrable 1 one_ne_top _ hT_add hT f hf,
+  rw one_smul,
+  nth_rewrite 0 ← zero_add μ',
+  exact add_le_add bot_le le_rfl,
 end
 
 lemma set_to_fun_congr_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞)
