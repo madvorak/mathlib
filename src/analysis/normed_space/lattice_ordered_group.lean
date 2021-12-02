@@ -174,3 +174,41 @@ lipschitz_with.of_dist_le_mul $ λ x y, by
 lemma lipschitz_with_pos {α : Type*} [normed_lattice_add_comm_group α] :
   lipschitz_with 1 (@lattice_ordered_comm_group.pos α _ _) :=
 lipschitz_with_sup_right 0
+
+lemma continuous_pos {α : Type*} [normed_lattice_add_comm_group α] :
+  continuous (@lattice_ordered_comm_group.pos α _ _) :=
+lipschitz_with.continuous lipschitz_with_pos
+
+lemma continuous_neg' {α : Type*} [normed_lattice_add_comm_group α] :
+  continuous (@lattice_ordered_comm_group.neg α _ _) :=
+continuous_pos.comp continuous_neg
+
+lemma pos_eq_zero_iff {E} [add_comm_group E] [lattice E] (x : E) : pos x = 0 ↔ x ≤ 0 :=
+by rw [lattice_ordered_comm_group.pos, sup_eq_right]
+
+lemma neg_eq_zero_iff {E} [add_comm_group E] [lattice E] [covariant_class E E (+) (≤)] (x : E) :
+  neg x = 0 ↔ 0 ≤ x :=
+by rw [neg, sup_eq_right, neg_le, neg_zero]
+
+lemma is_closed_nonneg {E} [normed_lattice_add_comm_group E] : is_closed {x : E | 0 ≤ x} :=
+begin
+  suffices : {x : E | 0 ≤ x} = neg ⁻¹' {(0 : E)},
+  by { rw this, exact is_closed.preimage continuous_neg' is_closed_singleton, },
+  ext1 x,
+  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq, neg_eq_zero_iff x],
+end
+
+lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topological_space G]
+  [has_continuous_sub G]
+  (h : is_closed {x : G | 0 ≤ x}) :
+  is_closed {p : G × G | p.fst ≤ p.snd} :=
+begin
+  have : {p : G × G | p.fst ≤ p.snd} = (λ p : G × G, p.snd - p.fst) ⁻¹' {x : G | 0 ≤ x},
+    by { ext1 p, simp only [sub_nonneg, set.preimage_set_of_eq], },
+  rw this,
+  exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
+end
+
+instance normed_lattice_add_comm_group.order_closed_topology {E} [normed_lattice_add_comm_group E] :
+  order_closed_topology E :=
+⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩

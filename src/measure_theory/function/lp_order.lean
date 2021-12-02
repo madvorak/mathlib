@@ -9,6 +9,8 @@ import analysis.normed_space.lattice_ordered_group
 /-!
 # Order related properties of Lp spaces
 
+We show that if `E` is a `normed_lattice_add_comm_group` then so is `Lp E p μ` for `1 ≤ p`.
+
 -/
 
 open topological_space measure_theory lattice_ordered_comm_group
@@ -109,30 +111,6 @@ end
 
 lemma neg_part_eq_zero_iff (f : Lp E p μ) : neg_part f = 0 ↔ 0 ≤ f :=
 by rw [neg_part_eq_pos_part_neg, pos_part_eq_zero_iff, neg_nonpos]
-
-lemma is_closed_nonneg [fact (1 ≤ p)] : is_closed {f : Lp E p μ | 0 ≤ f} :=
-begin
-  suffices : {f : ↥(Lp E p μ) | 0 ≤ f} = neg_part ⁻¹' {(0 : Lp E p μ)},
-  by { rw this, exact is_closed.preimage continuous_neg_part is_closed_singleton, },
-  ext1 f,
-  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq],
-  exact (neg_part_eq_zero_iff f).symm,
-end
-
-lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topological_space G]
-  [has_continuous_sub G]
-  (h : is_closed {x : G | 0 ≤ x}) :
-  is_closed {p : G × G | p.fst ≤ p.snd} :=
-begin
-  let F := λ p : G × G, p.snd - p.fst,
-  have : {p : G × G | p.fst ≤ p.snd} = F ⁻¹' {x : G | 0 ≤ x},
-    by { ext1 p, simp only [sub_nonneg, set.preimage_set_of_eq], },
-  rw this,
-  exact is_closed.preimage (continuous_snd.sub continuous_fst) h,
-end
-
-instance [fact (1 ≤ p)] : order_closed_topology (Lp E p μ) :=
-⟨is_closed_le_of_is_closed_nonneg is_closed_nonneg⟩
 
 lemma pos_part_sub_neg_part (f : Lp E p μ) : pos_part f - neg_part f = f :=
 begin
