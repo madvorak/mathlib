@@ -6,7 +6,6 @@ Authors: Johannes Hölzl, Zhouhang Zhou
 import measure_theory.integral.lebesgue
 import order.filter.germ
 import topology.continuous_function.algebra
-import topology.order.lattice
 
 /-!
 
