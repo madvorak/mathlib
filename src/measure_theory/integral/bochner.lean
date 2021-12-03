@@ -751,7 +751,7 @@ lemma integral_add' (hf : integrable f μ) (hg : integrable g μ) :
   ∫ a, (f + g) a ∂μ = ∫ a, f a ∂μ + ∫ a, g a ∂μ :=
 integral_add hf hg
 
-lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i, integrable (f i) μ) :
+lemma integral_finset_sum {ι} (s : finset ι) {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
   ∫ a, ∑ i in s, f i a ∂μ = ∑ i in s, ∫ a, f i a ∂μ :=
 set_to_fun_finset_sum (dominated_fin_meas_additive_weighted_smul _) s hf
 
