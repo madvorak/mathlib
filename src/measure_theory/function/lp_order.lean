@@ -117,27 +117,27 @@ instance : lattice (Lp E p μ) :=
   le_inf := λ _ _ _, @le_inf (α →ₘ[μ] E) _ _ _ _,
   ..subtype.partial_order _}
 
-lemma coe_fn_pos (f : Lp E p μ) : ⇑(pos f) =ᵐ[μ] λ a, f a ⊔ 0 :=
+lemma coe_fn_pos (f : Lp E p μ) : ⇑(has_pos_part.pos f) =ᵐ[μ] λ a, f a ⊔ 0 :=
 begin
-  rw lattice_ordered_comm_group.pos,
+  rw pos_part_def,
   filter_upwards [coe_fn_sup f 0, coe_fn_zero E p μ],
   intros a haf ha0,
   rw [haf, ha0, pi.zero_apply],
 end
 
-lemma coe_fn_neg_eq_sup_neg (f : Lp E p μ) : ⇑(neg f) =ᵐ[μ] λ a, (-f a) ⊔ 0 :=
+lemma coe_fn_neg_eq_sup_neg (f : Lp E p μ) : ⇑(has_neg_part.neg f) =ᵐ[μ] λ a, (-f a) ⊔ 0 :=
 begin
-  rw lattice_ordered_comm_group.neg,
+  rw neg_part_def,
   filter_upwards [coe_fn_sup (-f) 0, coe_fn_zero E p μ, coe_fn_neg f],
   intros a haf ha0 ha_neg,
   rw [haf, ha_neg, ha0, pi.neg_apply, pi.zero_apply],
 end
 
-lemma coe_fn_neg' (f : Lp E p μ) : ⇑(neg f) =ᵐ[μ] λ a, - (f a ⊓ 0) :=
+lemma coe_fn_neg' (f : Lp E p μ) : ⇑(has_neg_part.neg f) =ᵐ[μ] λ a, - (f a ⊓ 0) :=
 begin
   filter_upwards [coe_fn_neg_eq_sup_neg f],
   intros a ha,
-  rw [ha, neg_inf_eq_sup_neg, neg_zero],
+  rw [ha, neg_inf_eq_sup_neg, _root_.neg_zero],
 end
 
 lemma coe_fn_abs (f : Lp E p μ) : ⇑(|f|) =ᵐ[μ] λ a, |f a| :=
@@ -146,8 +146,8 @@ begin
   refine (coe_fn_add _ _).trans _,
   filter_upwards [coe_fn_pos f, coe_fn_neg' f],
   intros a ha_pos ha_neg,
-  rw [pi.add_apply, ha_pos, ha_neg, pos_add_neg, lattice_ordered_comm_group.pos,
-    lattice_ordered_comm_group.neg, add_right_inj, neg_inf_eq_sup_neg, neg_zero],
+  rw [pi.add_apply, ha_pos, ha_neg, pos_add_neg, pos_part_def, neg_part_def, add_right_inj,
+    neg_inf_eq_sup_neg, _root_.neg_zero],
 end
 
 end order
@@ -155,10 +155,10 @@ end order
 section pos_part_def
 
 /-- Positive part of a function in `L^p`. -/
-def pos_part (f : Lp E p μ) : Lp E p μ := pos f
+def pos_part (f : Lp E p μ) : Lp E p μ := has_pos_part.pos f
 
 /-- Negative part of a function in `L^p`. -/
-def neg_part (f : Lp E p μ) : Lp E p μ := neg f
+def neg_part (f : Lp E p μ) : Lp E p μ := has_neg_part.neg f
 
 lemma neg_part_eq_pos_part_neg (f : Lp E p μ) : neg_part f = pos_part (-f) := rfl
 
@@ -173,38 +173,38 @@ begin
 end
 
 lemma pos_part_sub_neg_part (f : Lp E p μ) : pos_part f - neg_part f = f :=
-by rw [pos_part, neg_part, ← pos_neg_neg f]
+by rw [pos_part, neg_part, pos_sub_neg f]
 
 end pos_part_def
 
 section pos_part_prop
 
 @[simp]
-lemma pos_part_eq_pos (f : Lp E p μ) : pos_part f = pos f := rfl
+lemma pos_part_eq_pos (f : Lp E p μ) : pos_part f = has_pos_part.pos f := rfl
 
 @[simp]
-lemma neg_part_eq_neg (f : Lp E p μ) : neg_part f = neg f := rfl
+lemma neg_part_eq_neg (f : Lp E p μ) : neg_part f = has_neg_part.neg f := rfl
 
 lemma pos_part_eq_zero_iff (f : Lp E p μ) : pos_part f = 0 ↔ f ≤ 0 :=
-by { rw pos_part_eq_pos, exact pos_eq_zero_iff f, }
+by { rw pos_part_eq_pos, exact pos_eq_zero_iff, }
 
 lemma neg_part_eq_zero_iff (f : Lp E p μ) : neg_part f = 0 ↔ 0 ≤ f :=
-by { rw neg_part_eq_neg, exact neg_eq_zero_iff f, }
+by { rw neg_part_eq_neg, exact neg_eq_zero_iff, }
 
 end pos_part_prop
 
-lemma coe_fn_pos_eq_pos (f : Lp E p μ) : ⇑(pos f) =ᵐ[μ] pos ⇑f :=
+lemma coe_fn_pos_eq_pos (f : Lp E p μ) : ⇑(has_pos_part.pos f) =ᵐ[μ] has_pos_part.pos ⇑f :=
 begin
-  simp_rw lattice_ordered_comm_group.pos,
+  simp_rw pos_part_def,
   filter_upwards [coe_fn_sup f 0, coe_fn_zero E p μ],
   intros a ha ha0,
   rw [ha, ha0],
   simp,
 end
 
-lemma coe_fn_neg_eq_neg (f : Lp E p μ) : ⇑(neg f) =ᵐ[μ] neg ⇑f :=
+lemma coe_fn_neg_eq_neg (f : Lp E p μ) : ⇑(has_neg_part.neg f) =ᵐ[μ] has_neg_part.neg ⇑f :=
 begin
-  simp_rw lattice_ordered_comm_group.neg,
+  simp_rw neg_part_def,
   filter_upwards [coe_fn_sup (-f) 0, coe_fn_zero E p μ, coe_fn_neg f],
   intros a ha ha0 ha_neg,
   rw [ha, ha0, ha_neg],
