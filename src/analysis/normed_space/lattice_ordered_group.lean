@@ -147,7 +147,7 @@ solid (abs_sup_sub_sup_le_abs x y z)
 lemma norm_inf_sub_inf_le_norm (x y z : α) : ∥x ⊓ z - (y ⊓ z)∥ ≤ ∥x - y∥ :=
 solid (abs_inf_sub_inf_le_abs x y z)
 
-lemma abs_pos_le (x : α) : |pos x| ≤ |x| :=
+lemma abs_pos_le (x : α) : |x⁺| ≤ |x| :=
 begin
   have h := abs_sup_sub_sup_le_abs x 0 0,
   simp only [sub_zero, sup_idem] at h,
@@ -170,7 +170,7 @@ begin
   refine le_trans _ h_sub_norm,
   refine sub_le_sub le_rfl (solid _),
   rw sup_comm,
-  rw abs_pos _,
+  exact abs_pos_le _,
 end
 
 lemma norm_inf_le_add_norm (x y : α) : ∥x ⊓ y∥ ≤ ∥x∥ + ∥y∥ :=
@@ -189,28 +189,21 @@ lemma lipschitz_with_sup_right (z : α) : lipschitz_with 1 (λ x, x ⊔ z) :=
 lipschitz_with.of_dist_le_mul $ λ x y, by
 { rw [nonneg.coe_one, one_mul, dist_eq_norm, dist_eq_norm], exact norm_sup_sub_sup_le_norm x y z, }
 
-lemma lipschitz_with_pos : lipschitz_with 1 (@lattice_ordered_comm_group.pos α _ _) :=
+lemma lipschitz_with_pos : lipschitz_with 1 (has_pos_part.pos : α → α) :=
 lipschitz_with_sup_right 0
 
-lemma continuous_pos : continuous (@lattice_ordered_comm_group.pos α _ _) :=
+lemma continuous_pos : continuous (has_pos_part.pos : α → α) :=
 lipschitz_with.continuous lipschitz_with_pos
 
-lemma continuous_neg' : continuous (@lattice_ordered_comm_group.neg α _ _) :=
+lemma continuous_neg' : continuous (has_neg_part.neg : α → α) :=
 continuous_pos.comp continuous_neg
-
-lemma pos_eq_zero_iff {E} [add_comm_group E] [lattice E] (x : E) : pos x = 0 ↔ x ≤ 0 :=
-by rw [lattice_ordered_comm_group.pos, sup_eq_right]
-
-lemma neg_eq_zero_iff {E} [add_comm_group E] [lattice E] [covariant_class E E (+) (≤)] (x : E) :
-  neg x = 0 ↔ 0 ≤ x :=
-by rw [neg, sup_eq_right, neg_le, neg_zero]
 
 lemma is_closed_nonneg {E} [normed_lattice_add_comm_group E] : is_closed {x : E | 0 ≤ x} :=
 begin
-  suffices : {x : E | 0 ≤ x} = neg ⁻¹' {(0 : E)},
+  suffices : {x : E | 0 ≤ x} = has_neg_part.neg ⁻¹' {(0 : E)},
   by { rw this, exact is_closed.preimage continuous_neg' is_closed_singleton, },
   ext1 x,
-  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq, neg_eq_zero_iff x],
+  simp only [set.mem_preimage, set.mem_singleton_iff, set.mem_set_of_eq, neg_eq_zero_iff],
 end
 
 lemma is_closed_le_of_is_closed_nonneg {G} [ordered_add_comm_group G] [topological_space G]
