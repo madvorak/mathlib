@@ -284,33 +284,13 @@ variables [lattice β] [topological_space β] [topological_lattice β] [borel_sp
   [second_countable_topology β]
 
 instance : has_sup (α →ₘ[μ] β) :=
-{ sup := λ f g, ae_eq_fun.comp₂ (⊔) continuous_sup.measurable f g }
+{ sup := λ f g, ae_eq_fun.comp₂ (⊔) measurable_sup f g }
 
 instance : has_inf (α →ₘ[μ] β) :=
-{ inf := λ f g, ae_eq_fun.comp₂ (⊓) continuous_inf.measurable f g }
+{ inf := λ f g, ae_eq_fun.comp₂ (⊓) measurable_inf f g }
 
 lemma coe_fn_sup (f g : α →ₘ[μ] β) : ⇑(f ⊔ g) =ᵐ[μ] λ x, f x ⊔ g x := coe_fn_comp₂ _ _ _ _
 lemma coe_fn_inf (f g : α →ₘ[μ] β) : ⇑(f ⊓ g) =ᵐ[μ] λ x, f x ⊓ g x := coe_fn_comp₂ _ _ _ _
-
-lemma _root_.ae_measurable.sup {f g : α → β} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  ae_measurable (f ⊔ g) μ :=
-begin
-  refine ⟨⇑((ae_eq_fun.mk f hf) ⊔ (ae_eq_fun.mk g hg)), ae_eq_fun.measurable _, _⟩,
-  filter_upwards [coe_fn_sup (ae_eq_fun.mk f hf) (ae_eq_fun.mk g hg), coe_fn_mk f hf,
-    coe_fn_mk g hg],
-  intros a ha_sup haf hag,
-  rw [ha_sup, haf, hag, pi.sup_apply],
-end
-
-lemma _root_.ae_measurable.inf {f g : α → β} (hf : ae_measurable f μ) (hg : ae_measurable g μ) :
-  ae_measurable (f ⊓ g) μ :=
-begin
-  refine ⟨⇑((ae_eq_fun.mk f hf) ⊓ (ae_eq_fun.mk g hg)), ae_eq_fun.measurable _, _⟩,
-  filter_upwards [coe_fn_inf (ae_eq_fun.mk f hf) (ae_eq_fun.mk g hg), coe_fn_mk f hf,
-    coe_fn_mk g hg],
-  intros a ha_sup haf hag,
-  rw [ha_sup, haf, hag, pi.inf_apply],
-end
 
 private lemma le_sup_left (f g : α →ₘ[μ] β) : f ≤ f ⊔ g :=
 by { rw ← coe_fn_le, filter_upwards [coe_fn_sup f g], intros a ha,  rw ha, exact le_sup_left, }
@@ -352,13 +332,6 @@ instance : lattice (α →ₘ[μ] β) :=
   inf_le_right := inf_le_right,
   le_inf := le_inf,
   ..ae_eq_fun.partial_order}
-
-/- TODO: Prove `L⁰` space is a lattice if β is linear order.
-         What if β is only a lattice? -/
-
--- instance [linear_order β] : semilattice_sup (α →ₘ β) :=
--- { sup := comp₂ (⊔) (_),
---    .. ae_eq_fun.partial_order }
 
 end lattice
 
