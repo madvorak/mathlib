@@ -1572,13 +1572,17 @@ lemma set_to_fun_finset_sum' (hT : dominated_fin_meas_additive μ T C) {ι} (s :
   {f : ι → α → E} (hf : ∀ i ∈ s, integrable (f i) μ) :
   set_to_fun μ T hT (∑ i in s, f i) = ∑ i in s, set_to_fun μ T hT (f i) :=
 begin
+  revert hf,
   refine finset.induction_on s _ _,
-  { simp only [set_to_fun_zero, finset.sum_empty] },
-  { assume i s his ih,
+  { intro h,
+    simp only [set_to_fun_zero, finset.sum_empty] },
+  { assume i s his ih hf,
     simp only [his, finset.sum_insert, not_false_iff],
-    rw set_to_fun_add hT (hf i his) _,
-    { rw ih, },
-    { convert (integrable_finset_sum s hf), ext1 x, simp, }, }
+    rw set_to_fun_add hT (hf i (finset.mem_insert_self i s)) _,
+    { rw ih (λ i hi, hf i (finset.mem_insert_of_mem hi)), },
+    { convert (integrable_finset_sum s (λ i hi, hf i (finset.mem_insert_of_mem hi))),
+      ext1 x,
+      simp, }, }
 end
 
 lemma set_to_fun_finset_sum (hT : dominated_fin_meas_additive μ T C) {ι} (s : finset ι)
