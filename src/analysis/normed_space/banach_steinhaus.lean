@@ -81,9 +81,11 @@ begin
         ...  ≤ 2 * m                   : by linarith [real_norm_le (y + x) yx_mem i]
         ...  ≤ (2 * m * (∥k∥ / ε)) * (ε / ∥k∥) : by rw [mul_assoc, kε_mul_eq_one, mul_one]
         ...  ≤ (2 * m * (∥k∥ / ε)) * ∥y∥ : by nlinarith [le_y, C_pos] },
-  have norm_bd : ∀ i : ι, ∥g i∥ ≤ (2 * m * (∥k∥ / ε)), from sorry,
+  have norm_bd : ∀ i : ι, ∥g i∥ ≤ (2 * m * (∥k∥ / ε)), from
+    λ i, continuous_linear_map.op_norm_le_of_shell ε_pos C_pos hk (norm_aux i),
   /- convert norm bounds into supremum bound and finish up -/
-  have supr_norm_bd : (⨆ i : ι, (∥g i∥₊ : ℝ≥0∞)) ≤ ↑((2:ℝ) * m * (∥k∥ / ε)).to_nnreal,
-    from sorry,
-  exact lt_of_le_of_lt supr_norm_bd (ennreal.coe_lt_top),
+  have supr_norm_bd : (⨆ i : ι, (∥g i∥₊ : ℝ≥0∞)) ≤ ↑((2:ℝ) * m * (∥k∥ / ε)).to_nnreal, from
+    supr_le (λ i,
+      by exact_mod_cast eq.trans_le norm_to_nnreal.symm (real.to_nnreal_mono (norm_bd i))),
+  exact lt_of_le_of_lt supr_norm_bd (coe_lt_top),
 end
