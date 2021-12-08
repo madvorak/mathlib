@@ -72,12 +72,13 @@ begin
     { intros i y le_y y_lt,
       have yx_mem : y + x ∈ metric.ball x ε, by rwa [add_comm, add_mem_ball_iff_norm],
       calc
-      ∥g i y∥ = ∥g i (y + x) - g i x∥  : by simp only [continuous_linear_map.map_add, add_sub_cancel]
-        ...  ≤ ∥g i (y + x)∥ + ∥g i x∥ : norm_sub_le _ _
-        ...  ≤ ∥g i (y + x)∥ + m       : by linarith [real_norm_le x (metric.mem_ball_self ε_pos) i]
-        ...  ≤ 2 * m                   : by linarith [real_norm_le (y + x) yx_mem i]
-        ...  ≤ (2 * m * (∥k∥ / ε)) * (ε / ∥k∥) : by rw [mul_assoc, kε_mul_eq_one, mul_one]
-        ...  ≤ (2 * m * (∥k∥ / ε)) * ∥y∥ : by nlinarith [le_y, C_pos] },
+      ∥g i y∥
+          = ∥g i (y + x) - g i x∥   : by simp only [continuous_linear_map.map_add, add_sub_cancel]
+      ... ≤ ∥g i (y + x)∥ + ∥g i x∥ : norm_sub_le _ _
+      ... ≤ ∥g i (y + x)∥ + m       : by linarith [real_norm_le x (metric.mem_ball_self ε_pos) i]
+      ... ≤ 2 * m                   : by linarith [real_norm_le (y + x) yx_mem i]
+      ... ≤ (2 * m * (∥k∥ / ε)) * (ε / ∥k∥) : by rw [mul_assoc, kε_mul_eq_one, mul_one]
+      ... ≤ (2 * m * (∥k∥ / ε)) * ∥y∥ : by nlinarith [le_y, C_pos] },
   have norm_bd : ∀ i : ι, ∥g i∥ ≤ (2 * m * (∥k∥ / ε)), from
     λ i, continuous_linear_map.op_norm_le_of_shell ε_pos C_pos hk (norm_aux i),
   /- convert norm bounds into supremum bound and finish up -/
