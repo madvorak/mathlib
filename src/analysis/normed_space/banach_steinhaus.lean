@@ -20,7 +20,7 @@ open_locale ennreal
 open ennreal
 
 variables {E : Type*} {F : Type*} {𝕜 : Type*}
-variables [normed_group E] [semi_normed_group F]
+variables [semi_normed_group E] [semi_normed_group F]
 variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
 theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
