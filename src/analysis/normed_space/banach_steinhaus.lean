@@ -59,7 +59,12 @@ begin
       simpa only [coe_to_real, coe_nnnorm, to_real_nat, nat.cast_inj]
         using to_real_mono coe_nat_ne_top hz, },
   /- show some relevant constants are nonnegative or positive. -/
-  have C_pos : (2:ℝ) * m * (∥k∥ / ε) ≥ 0, from sorry,
+  have kε_pos : ∥k∥ / ε > 0, from div_pos (lt_trans zero_lt_one hk) (ε_pos),
+  have kε_mul_eq_one : (∥k∥ / ε) * (ε / ∥k∥) = 1,
+    { rw [div_mul_div, mul_comm, div_eq_one_iff_eq],
+      exact ne_of_gt (mul_pos (ε_pos) (lt_trans zero_lt_one hk)) },
+  have two_m_nonneg : (2:ℝ) * m ≥ 0, by norm_num,
+  have C_pos : (2:ℝ) * m * (∥k∥ / ε) ≥ 0, by nlinarith,
   /- bound norms of `g i`-/
   /- Suppose `y : E` and `ε / ∥k∥ ≤ ∥y∥ < ε`, then for any operator `T` in the collection:
   `∥T y∥ = ∥T (x + y) - T x∥ ≤ ∥T (x + y)∥ + ∥T x∥ ≤ m + m ≤ 2 * m * (∥k∥ / ε) * ∥x∥` -/
