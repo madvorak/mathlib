@@ -23,6 +23,9 @@ variables {E : Type*} {F : Type*} {𝕜 : Type*}
 variables [normed_group E] [semi_normed_group F]
 variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
+lemma norm_to_nnreal {G : Type*} [semi_normed_group G] {x : G} : ∥x∥.to_nnreal = ∥x∥₊ :=
+subtype.ext (eq.trans (real.coe_to_nnreal (∥_∥) (norm_nonneg _)) rfl)
+
 theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
 ( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
 (⨆ i : ι, ↑∥g i∥₊) < ∞ :=
