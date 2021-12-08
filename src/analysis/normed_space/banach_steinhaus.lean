@@ -50,9 +50,14 @@ begin
   rcases set.nonempty_def.mp hm with ⟨x, hx⟩,
   rcases metric.is_open_iff.mp is_open_interior x hx with ⟨ε, ε_pos, hε⟩,
   rcases _inst_3.non_trivial with ⟨(k : 𝕜), hk⟩, -- why didn't it find it?
-  /- get back to `ℝ` from `ℝ≥0∞` -/
+  /- get back to `ℝ` from `ℝ≥0∞`; this makes the calculation `norm_bound` easier later,
+     especially so we can use `continuous_linear_map.op_norm_le_of_shell` -/
   have real_norm_le : ∀ z : E, z ∈ metric.ball x ε → ∀ i : ι, ∥g i z∥ ≤ m,
-    from sorry,
+    { intros z hz i,
+      replace hz := set.mem_Inter.mp (interior_Inter_subset _ (hε hz)) i,
+      replace hz := interior_subset hz,
+      simpa only [coe_to_real, coe_nnnorm, to_real_nat, nat.cast_inj]
+        using to_real_mono coe_nat_ne_top hz, },
   /- show some relevant constants are nonnegative or positive. -/
   have C_pos : (2:ℝ) * m * (∥k∥ / ε) ≥ 0, from sorry,
   /- bound norms of `g i`-/
