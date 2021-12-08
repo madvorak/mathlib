@@ -30,10 +30,20 @@ begin
   /- sequence of subsets consisting of those `x : E` with norms `∥g i x∥` bounded by `n` -/
   let e : ℕ → set E := λ n, (⋂ i : ι, { x : E | (↑∥g i x∥₊ : ℝ≥0∞) ≤ ↑n }),
   /- each of these sets is closed -/
-    /- the union is the entire space; this is where we use `h` -/
-  have hU : (⋃ n : ℕ, e n) = set.univ, from sorry,
   have hc : ∀ n : ℕ, is_closed (e n), from λ i, is_closed_Inter (λ i,
     is_closed_le (continuous_coe.comp (continuous.nnnorm (g i).cont)) continuous_const),
+  /- the union is the entire space; this is where we use `h` -/
+  have hU : (⋃ n : ℕ, e n) = set.univ,
+    { apply set.eq_univ_of_forall,
+      intro x,
+      rcases lt_iff_exists_coe.mp (h x) with ⟨p,hp₁,_⟩,
+      rcases exists_nat_gt p with ⟨m,hm⟩,
+      have bound := λ i,
+        calc
+          (∥g i x∥₊ : ℝ≥0∞) ≤ ⨆ j : ι, ∥g j x∥₊ : le_supr _ i
+          ...               = ↑p                : hp₁
+          ...               ≤ ↑m                : (coe_lt_coe_nat.mpr hm).le,
+      exact ⟨e m, set.mem_range_self m, set.mem_Inter.mpr bound⟩ },
   /- apply the Baire category theorem to conclude `e m` has nonempty interior for some `m : ℕ` -/
   rcases nonempty_interior_of_Union_of_closed hc hU with ⟨m, hm⟩,
   /- extract an `x` in the interior and get an `ε`-ball containing it in the interior -/
