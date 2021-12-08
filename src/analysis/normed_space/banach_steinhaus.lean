@@ -46,7 +46,7 @@ begin
       exact ⟨e m, set.mem_range_self m, set.mem_Inter.mpr bound⟩ },
   /- apply the Baire category theorem to conclude `e m` has nonempty interior for some `m : ℕ` -/
   rcases nonempty_interior_of_Union_of_closed hc hU with ⟨m, hm⟩,
-  /- extract an `x` in the interior and get an `ε`-ball containing it in the interior -/
+  /- extract an `x` and get an `ε`-ball containing it in the interior -/
   rcases set.nonempty_def.mp hm with ⟨x, hx⟩,
   rcases metric.is_open_iff.mp is_open_interior x hx with ⟨ε, ε_pos, hε⟩,
   rcases _inst_3.non_trivial with ⟨(k : 𝕜), hk⟩, -- why didn't it find it?
