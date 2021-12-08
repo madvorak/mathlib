@@ -17,6 +17,7 @@ convex spaces), but these are not yet in `mathlib`.
 -/
 
 open_locale ennreal
+open ennreal
 
 variables {E : Type*} {F : Type*} {𝕜 : Type*}
 variables [normed_group E] [semi_normed_group F]
@@ -29,9 +30,10 @@ begin
   /- sequence of subsets consisting of those `x : E` with norms `∥g i x∥` bounded by `n` -/
   let e : ℕ → set E := λ n, (⋂ i : ι, { x : E | (↑∥g i x∥₊ : ℝ≥0∞) ≤ ↑n }),
   /- each of these sets is closed -/
-  have hc : ∀ n : ℕ, is_closed (e n), from sorry,
     /- the union is the entire space; this is where we use `h` -/
   have hU : (⋃ n : ℕ, e n) = set.univ, from sorry,
+  have hc : ∀ n : ℕ, is_closed (e n), from λ i, is_closed_Inter (λ i,
+    is_closed_le (continuous_coe.comp (continuous.nnnorm (g i).cont)) continuous_const),
   /- apply the Baire category theorem to conclude `e m` has nonempty interior for some `m : ℕ` -/
   rcases nonempty_interior_of_Union_of_closed hc hU with ⟨m, hm⟩,
   /- extract an `x` in the interior and get an `ε`-ball containing it in the interior -/
