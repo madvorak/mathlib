@@ -69,7 +69,15 @@ begin
   /- Suppose `y : E` and `ε / ∥k∥ ≤ ∥y∥ < ε`, then for any operator `T` in the collection:
   `∥T y∥ = ∥T (x + y) - T x∥ ≤ ∥T (x + y)∥ + ∥T x∥ ≤ m + m ≤ 2 * m * (∥k∥ / ε) * ∥x∥` -/
   have norm_aux : ∀ i : ι, ∀ y : E, ε / ∥k∥ ≤ ∥y∥ → ∥y∥ < ε → ∥g i y∥ ≤ (2:ℝ) * m * (∥k∥ / ε) * ∥y∥,
-    from sorry,
+    { intros i y le_y y_lt,
+      have yx_mem : y + x ∈ metric.ball x ε, by rwa [add_comm, add_mem_ball_iff_norm],
+      calc
+      ∥g i y∥ = ∥g i (y + x) - g i x∥  : by simp only [continuous_linear_map.map_add, add_sub_cancel]
+        ...  ≤ ∥g i (y + x)∥ + ∥g i x∥ : norm_sub_le _ _
+        ...  ≤ ∥g i (y + x)∥ + m       : by linarith [real_norm_le x (metric.mem_ball_self ε_pos) i]
+        ...  ≤ 2 * m                   : by linarith [real_norm_le (y + x) yx_mem i]
+        ...  ≤ (2 * m * (∥k∥ / ε)) * (ε / ∥k∥) : by rw [mul_assoc, kε_mul_eq_one, mul_one]
+        ...  ≤ (2 * m * (∥k∥ / ε)) * ∥y∥ : by nlinarith [le_y, C_pos] },
   have norm_bd : ∀ i : ι, ∥g i∥ ≤ (2 * m * (∥k∥ / ε)), from sorry,
   /- convert norm bounds into supremum bound and finish up -/
   have supr_norm_bd : (⨆ i : ι, (∥g i∥₊ : ℝ≥0∞)) ≤ ↑((2:ℝ) * m * (∥k∥ / ε)).to_nnreal,
