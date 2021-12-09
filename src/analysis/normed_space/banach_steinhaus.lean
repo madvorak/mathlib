@@ -94,3 +94,31 @@ begin
     exact coe_mono (real.to_nnreal_le_to_nnreal (hC' i)) }
 end
 
+open_locale topological_space
+open filter
+
+definition continuous_linear_map_of_pointwise_tendsto [complete_space E] [t2_space F]
+{g : ℕ → E →L[𝕜] F} {f : E → F} (h : ∀ x : E, tendsto (λ n, g n x) at_top (𝓝 (f x))) :
+E →L[𝕜] F :=
+{ to_fun := f,
+  map_add' := (linear_map_of_pointwise_tendsto h).map_add',
+  map_smul' := (linear_map_of_pointwise_tendsto h).map_smul',
+  cont :=
+    begin
+      have h_point_bdd : ∀ x : E, ∃ C : ℝ, ∀ n : ℕ, ∥g n x∥ ≤ C,
+        { intro x,
+          rcases cauchy_seq_bdd (tendsto.cauchy_seq (h x)) with ⟨C, C_pos, hC⟩,
+          refine ⟨C + ∥g 0 x∥, (λ n, _)⟩,
+          simp_rw dist_eq_norm at hC,
+          calc ∥g n x∥ ≤ ∥g 0 x∥ + ∥g n x - g 0 x∥ : norm_le_insert' _ _
+            ...        ≤ C + ∥g 0 x∥               : by linarith [hC n 0] },
+      cases banach_steinhaus h_point_bdd with C' hC',
+      refine linear_map.continuous_of_bound (linear_map_of_pointwise_tendsto h) C' _,
+      intro x,
+      refine _root_.le_of_forall_pos_lt_add (λ ε ε_pos, _),
+      cases metric.tendsto_at_top.mp (h x) ε ε_pos with n hn,
+      have foo'' : ∥g n x - f x∥ < ε, by {rw ←dist_eq_norm, exact hn n (le_refl n)},
+      calc ∥f x∥ ≤ ∥g n x∥ + ∥g n x - f x∥ : norm_le_insert _ _
+        ...      < ∥g n∥ * ∥x∥ + ε        : by linarith [foo'', (g n).le_op_norm x]
+        ...      ≤ C' * ∥x∥ + ε           : by nlinarith [hC' n, norm_nonneg x],
+    end }
