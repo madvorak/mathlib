@@ -72,3 +72,25 @@ begin
     λ i, continuous_linear_map.op_norm_le_of_shell ε_pos C_pos hk (norm_aux i),
   exact ⟨2 * m * (∥k∥ / ε), norm_bd⟩,
 end
+
+open_locale ennreal
+open ennreal
+
+theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
+( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
+(⨆ i : ι, ↑∥g i∥₊) < ∞ :=
+begin
+  have h' : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C,
+    { intro x,
+      rcases lt_iff_exists_coe.mp (h x) with ⟨p,hp₁,_⟩,
+      refine ⟨p, (λ i, _)⟩,
+      exact_mod_cast
+      calc (∥g i x∥₊ : ℝ≥0∞) ≤ ⨆ j : ι, ∥g j x∥₊ : le_supr _ i
+        ...                  = ↑p                : hp₁ },
+  cases banach_steinhaus h' with C' hC',
+  refine lt_of_le_of_lt (supr_le (λ i, _)) (coe_lt_top),
+  { exact C'.to_nnreal },
+  { rw ←norm_to_nnreal,
+    exact coe_mono (real.to_nnreal_le_to_nnreal (hC' i)) }
+end
+
