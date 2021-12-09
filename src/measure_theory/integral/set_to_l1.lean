@@ -29,8 +29,8 @@ expectation of an integrable function in `measure_theory.function.conditional_ex
   This is the property needed to perform the extension from indicators to L1.
 - `set_to_L1 (hT : dominated_fin_meas_additive μ T C) : (α →₁[μ] E) →L[ℝ] F`: the extension of `T`
   from indicators to L1.
-- `set_to_fun (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F`: a version of the extension
-  which applies to functions (with value 0 if the function is not integrable).
+- `set_to_fun μ T (hT : dominated_fin_meas_additive μ T C) (f : α → E) : F`: a version of the
+  extension which applies to functions (with value 0 if the function is not integrable).
 
 ## Implementation notes
 
@@ -88,7 +88,7 @@ lemma smul [monoid 𝕜] [distrib_mul_action 𝕜 β] (hT : fin_meas_additive μ
   fin_meas_additive μ (λ s, c • (T s)) :=
 λ s t hs ht hμs hμt hst, by simp [hT s t hs ht hμs hμt hst]
 
-lemma of_finite_implies_finite {μ' : measure α}
+lemma of_eq_top_imp_eq_top {μ' : measure α}
   (h : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞) (hT : fin_meas_additive μ T) :
   fin_meas_additive μ' T :=
 λ s t hs ht hμ's hμ't hst, hT s t hs ht (mt (h s hs) hμ's) (mt (h t ht) hμ't) hst
@@ -96,7 +96,7 @@ lemma of_finite_implies_finite {μ' : measure α}
 lemma of_smul_measure (c : ℝ≥0∞) (hc_ne_top : c ≠ ∞) (hT : fin_meas_additive (c • μ) T) :
   fin_meas_additive μ T :=
 begin
-  refine of_finite_implies_finite (λ s hs hμs, _) hT,
+  refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
   rw [measure.smul_apply, with_top.mul_eq_top_iff] at hμs,
   simp only [hc_ne_top, or_false, ne.def, false_and] at hμs,
   exact hμs.2,
@@ -105,7 +105,7 @@ end
 lemma smul_measure (c : ℝ≥0∞) (hc_ne_zero : c ≠ 0) (hT : fin_meas_additive μ T) :
   fin_meas_additive (c • μ) T :=
 begin
-  refine of_finite_implies_finite (λ s hs hμs, _) hT,
+  refine of_eq_top_imp_eq_top (λ s hs hμs, _) hT,
   rw [measure.smul_apply, with_top.mul_eq_top_iff],
   simp only [hc_ne_zero, true_and, ne.def, not_false_iff],
   exact or.inl hμs,
@@ -160,7 +160,7 @@ end fin_meas_additive
 set (up to a multiplicative constant). -/
 def dominated_fin_meas_additive {β} [semi_normed_group β] {m : measurable_space α}
   (μ : measure α) (T : set α → β) (C : ℝ) : Prop :=
-fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real
+fin_meas_additive μ T ∧ ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real
 
 namespace dominated_fin_meas_additive
 
@@ -180,7 +180,7 @@ lemma eq_zero_of_measure_zero {β : Type*} [normed_group β] {T : set α → β}
   T s = 0 :=
 begin
   refine norm_eq_zero.mp _,
-  refine le_antisymm ((hT.2 s hs (by simp [hs_zero])).trans (le_of_eq _)) (norm_nonneg _),
+  refine ((hT.2 s hs (by simp [hs_zero])).trans (le_of_eq _)).antisymm (norm_nonneg _),
   rw [hs_zero, ennreal.zero_to_real, mul_zero],
 end
 
@@ -214,10 +214,10 @@ lemma of_measure_le {μ' : measure α} (h : μ ≤ μ') (hT : dominated_fin_meas
 begin
   have h' : ∀ s, measurable_set s → μ s = ∞ → μ' s = ∞,
   { intros s hs hμs, rw [eq_top_iff, ← hμs], exact h s hs, },
-  refine ⟨hT.1.of_finite_implies_finite h', λ s hs hμ's, _⟩,
-  have hμs : μ s ≠ ∞, from ne_top_of_le_ne_top hμ's (h s hs),
+  refine ⟨hT.1.of_eq_top_imp_eq_top h', λ s hs hμ's, _⟩,
+  have hμs : μ s < ∞, from (h s hs).trans_lt hμ's,
   refine (hT.2 s hs hμs).trans (mul_le_mul le_rfl _ ennreal.to_real_nonneg hC),
-  rw to_real_le_to_real hμs hμ's,
+  rw to_real_le_to_real hμs.ne hμ's.ne,
   exact h s hs,
 end
 
@@ -240,19 +240,18 @@ begin
     simp only [hc_ne_top, algebra.id.smul_eq_mul, with_top.mul_eq_top_iff, or_false, ne.def,
       false_and] at hcμs,
     exact hcμs.2, },
-  unfold dominated_fin_meas_additive at hT,
-  refine ⟨hT.1.of_finite_implies_finite h, λ s hs hμs, _⟩,
-  have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs,
+  refine ⟨hT.1.of_eq_top_imp_eq_top h, λ s hs hμs, _⟩,
+  have hcμs : c • μ s ≠ ∞, from mt (h s hs) hμs.ne,
   rw smul_eq_mul at hcμs,
-  simp_rw [measure.smul_apply, to_real_mul] at hT,
-  refine (hT.2 s hs hcμs).trans (le_of_eq _),
+  simp_rw [dominated_fin_meas_additive, measure.smul_apply, to_real_mul] at hT,
+  refine (hT.2 s hs hcμs.lt_top).trans (le_of_eq _),
   ring,
 end
 
 lemma of_measure_le_smul {μ' : measure α} (c : ℝ≥0∞) (hc : c ≠ ∞) (h : μ ≤ c • μ')
   (hT : dominated_fin_meas_additive μ T C) (hC : 0 ≤ C) :
   dominated_fin_meas_additive μ' T (c.to_real * C) :=
-( hT.of_measure_le h hC).of_smul_measure c hc
+(hT.of_measure_le h hC).of_smul_measure c hc
 
 end dominated_fin_meas_additive
 
@@ -588,7 +587,7 @@ calc ∥f.set_to_simple_func T∥
 ... ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ : by simp_rw [mul_sum, ← mul_assoc]
 
 lemma norm_set_to_simple_func_le_sum_mul_norm_of_integrable (T : set α → E →L[ℝ] F') {C : ℝ}
-  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ E)
+  (hT_norm : ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →ₛ E)
   (hf : integrable f μ) :
   ∥f.set_to_simple_func T∥ ≤ C * ∑ x in f.range, (μ (f ⁻¹' {x})).to_real * ∥x∥ :=
 calc ∥f.set_to_simple_func T∥
@@ -600,7 +599,7 @@ calc ∥f.set_to_simple_func T∥
     { rw hb, simp, },
     rw _root_.mul_le_mul_right _,
     { refine hT_norm _ (simple_func.measurable_set_fiber _ _)
-        (simple_func.measure_preimage_lt_top_of_integrable _ hf _).ne,
+        (simple_func.measure_preimage_lt_top_of_integrable _ hf _),
       rwa norm_eq_zero at hb, },
     { exact lt_of_le_of_ne (norm_nonneg _) (ne.symm hb), },
   end
@@ -799,8 +798,7 @@ begin
 end
 
 lemma norm_set_to_L1s_le (T : set α → E →L[ℝ] F) {C : ℝ}
-  (hT_norm : ∀ s, measurable_set s → μ s ≠ ∞ → ∥T s∥ ≤ C * (μ s).to_real)
-  (f : α →₁ₛ[μ] E) :
+  (hT_norm : ∀ s, measurable_set s → μ s < ∞ → ∥T s∥ ≤ C * (μ s).to_real) (f : α →₁ₛ[μ] E) :
   ∥set_to_L1s T f∥ ≤ C * ∥f∥ :=
 begin
   rw [set_to_L1s, norm_eq_sum_mul f],
@@ -813,10 +811,11 @@ lemma set_to_L1s_indicator_const {T : set α → E →L[ℝ] F} {s : set α}
   (hs : measurable_set s) (hμs : μ s ≠ ∞) (x : E) :
   set_to_L1s T (simple_func.indicator_const 1 hs hμs x) = T s x :=
 begin
-  have h_empty : T ∅ = 0, from h_zero _ measurable_set.empty measure_empty,
+  have h_empty : T ∅ = 0, from hT.eq_zero_of_measure_zero measurable_set.empty measure_empty,
   rw set_to_L1s_eq_set_to_simple_func,
   refine eq.trans _ (simple_func.set_to_simple_func_indicator T h_empty hs x),
-  refine simple_func.set_to_simple_func_congr T h_zero h_add (simple_func.integrable _) _,
+  refine simple_func.set_to_simple_func_congr T (λ _, hT.eq_zero_of_measure_zero) hT.1
+    (simple_func.integrable _) _,
   exact Lp.simple_func.to_simple_func_indicator_const hs hμs x,
 end
 
@@ -972,15 +971,15 @@ variables (α E μ 𝕜)
 def set_to_L1s_clm' {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C)
   (h_smul : ∀ c : 𝕜, ∀ s x, T s (c • x) = c • T s x) :
   (α →₁ₛ[μ] E) →L[𝕜] F :=
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ s, hT.eq_zero_of_measure_zero) hT.1,
-  set_to_L1s_smul T (λ s, hT.eq_zero_of_measure_zero) hT.1 h_smul⟩ C
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul T (λ _, hT.eq_zero_of_measure_zero) hT.1 h_smul⟩ C
   (λ f, norm_set_to_L1s_le T hT.2 f)
 
 /-- Extend `set α → E →L[ℝ] F` to `(α →₁ₛ[μ] E) →L[ℝ] F`. -/
 def set_to_L1s_clm {T : set α → E →L[ℝ] F} {C : ℝ} (hT : dominated_fin_meas_additive μ T C) :
   (α →₁ₛ[μ] E) →L[ℝ] F :=
-linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ s, hT.eq_zero_of_measure_zero) hT.1,
-  set_to_L1s_smul_real T (λ s, hT.eq_zero_of_measure_zero) hT.1⟩ C
+linear_map.mk_continuous ⟨set_to_L1s T, set_to_L1s_add T (λ _, hT.eq_zero_of_measure_zero) hT.1,
+  set_to_L1s_smul_real T (λ _, hT.eq_zero_of_measure_zero) hT.1⟩ C
   (λ f, norm_set_to_L1s_le T hT.2 f)
 
 variables {α E μ 𝕜}
