@@ -49,17 +49,9 @@ class normed_lattice_add_comm_group (α : Type*)
 lemma solid {α : Type*} [normed_lattice_add_comm_group α] {a b : α} (h : |a| ≤ |b|) : ∥a∥ ≤ ∥b∥ :=
 normed_lattice_add_comm_group.solid a b h
 
-<<<<<<< HEAD
-noncomputable
-instance real.normed_lattice_add_comm_group : normed_lattice_add_comm_group ℝ :=
-{ add_le_add_left := λ a b h c, add_le_add_left h c,
-  solid := λ a b h, by { simp_rw real.norm_eq_abs, exact h} }
-
-=======
 noncomputable instance : normed_lattice_add_comm_group ℝ :=
 { add_le_add_left := λ _ _ h _, add_le_add le_rfl h,
   solid := λ _ _, id, }
->>>>>>> origin/master
 /--
 A normed lattice ordered group is an ordered additive commutative group
 -/
