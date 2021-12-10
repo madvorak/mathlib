@@ -253,17 +253,17 @@ notation M ` ≃L⋆[`:50 R `] ` M₂ := continuous_linear_equiv (@star_ring_aut
 namespace continuous_linear_map
 
 section pointwise_limits
-/-!### Bundling pointwise limits of various maps -/
 
-variables {M₁ M₂ α R S : Type*}
-variables [topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
-variables [add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
-variables [topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
-variables {σ : R →+* S} {l : filter α} {f : M₁ → M₂}
+variables
+{M₁ M₂ α R S : Type*}
+[topological_space M₂] [t2_space M₂] [semiring R] [semiring S]
+[add_comm_monoid M₁] [add_comm_monoid M₂] [module R M₁] [module S M₂]
+[topological_space S] [has_continuous_smul S M₂] [has_continuous_add M₂]
+{σ : R →+* S} {l : filter α} {f : M₁ → M₂}
 
 /-- Construct a bundled linear map from a pointwise limit of linear maps -/
-definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
+@[simps] def linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
+  (h : tendsto (λ a x, g a x) l (𝓝 f)) : M₁ →ₛₗ[σ] M₂ :=
 { to_fun := f,
   map_add' := λ x y, by
     { rw tendsto_pi_nhds at h,
@@ -273,9 +273,6 @@ definition linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
     { rw tendsto_pi_nhds at h,
       refine tendsto_nhds_unique (h (r • x)) _,
       simpa only [linear_map.map_smulₛₗ] using tendsto.smul tendsto_const_nhds (h x) } }
-
-@[simp] lemma coe_linear_map_of_tendsto {g : α → M₁ →ₛₗ[σ] M₂} [l.ne_bot]
-(h : tendsto (λ a x, g a x) l (𝓝 f)) : ⇑(linear_map_of_tendsto h) = f := rfl
 
 end pointwise_limits
 
