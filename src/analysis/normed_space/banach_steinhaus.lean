@@ -20,6 +20,9 @@ variables {E : Type*} {F : Type*} {𝕜 : Type*}
 variables [semi_normed_group E] [semi_normed_group F]
 variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
+/-- This is the standard Banach-Steinhaus theorem, or Uniform Boundedness Principle.
+If a family of continuous linear maps from a Banach space into a normed space is pointwise
+bounded, then the norms of these linear maps are uniformly bounded. -/
 theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
   ( h : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C) :
   ∃ C' : ℝ, ∀ i : ι, ∥g i∥ ≤ C' :=
@@ -76,6 +79,8 @@ end
 open_locale ennreal
 open ennreal
 
+/-- This version of Banach-Steinhaus is stated in terms of suprema of `↑∥⬝∥₊ : ℝ≥0∞`
+for convenience. -/
 theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
   ( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
   (⨆ i : ι, ↑∥g i∥₊) < ∞ :=
@@ -97,6 +102,9 @@ end
 open_locale topological_space
 open filter
 
+/-- Given a *sequence* of continuous linear maps which converges pointwise and for which the
+domain is complete, the Banach-Steinhaus theorem is used to guarantee that the limit map
+is a *continuous* linear map as well. -/
 def continuous_linear_map_of_pointwise_tendsto [complete_space E] [t2_space F]
   {g : ℕ → E →L[𝕜] F} {f : E → F} (h : ∀ x : E, tendsto (λ n, g n x) at_top (𝓝 (f x))) :
   E →L[𝕜] F :=
