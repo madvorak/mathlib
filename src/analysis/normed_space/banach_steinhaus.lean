@@ -21,8 +21,8 @@ variables [semi_normed_group E] [semi_normed_group F]
 variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
 
 theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
-( h : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C) :
-∃ C' : ℝ, ∀ i : ι, ∥g i∥ ≤ C' :=
+  ( h : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C) :
+  ∃ C' : ℝ, ∀ i : ι, ∥g i∥ ≤ C' :=
 begin
   /- sequence of subsets consisting of those `x : E` with norms `∥g i x∥` bounded by `n` -/
   let e : ℕ → set E := λ n, (⋂ i : ι, { x : E | ∥g i x∥ ≤ n }),
@@ -77,8 +77,8 @@ open_locale ennreal
 open ennreal
 
 theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
-( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
-(⨆ i : ι, ↑∥g i∥₊) < ∞ :=
+  ( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
+  (⨆ i : ι, ↑∥g i∥₊) < ∞ :=
 begin
   have h' : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C,
     { intro x,
@@ -97,9 +97,9 @@ end
 open_locale topological_space
 open filter
 
-definition continuous_linear_map_of_pointwise_tendsto [complete_space E] [t2_space F]
-{g : ℕ → E →L[𝕜] F} {f : E → F} (h : ∀ x : E, tendsto (λ n, g n x) at_top (𝓝 (f x))) :
-E →L[𝕜] F :=
+def continuous_linear_map_of_pointwise_tendsto [complete_space E] [t2_space F]
+  {g : ℕ → E →L[𝕜] F} {f : E → F} (h : ∀ x : E, tendsto (λ n, g n x) at_top (𝓝 (f x))) :
+  E →L[𝕜] F :=
 { to_fun := f,
   map_add' := (linear_map_of_pointwise_tendsto h).map_add',
   map_smul' := (linear_map_of_pointwise_tendsto h).map_smul',
