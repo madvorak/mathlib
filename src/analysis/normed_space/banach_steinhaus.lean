@@ -88,7 +88,7 @@ theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι →
 begin
   have h' : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C,
     { intro x,
-      rcases lt_iff_exists_coe.mp (h x) with ⟨p,hp₁,_⟩,
+      rcases lt_iff_exists_coe.mp (h x) with ⟨p, hp₁, _⟩,
       refine ⟨p, (λ i, _)⟩,
       exact_mod_cast
       calc (∥g i x∥₊ : ℝ≥0∞) ≤ ⨆ j : ι, ∥g j x∥₊ : le_supr _ i
