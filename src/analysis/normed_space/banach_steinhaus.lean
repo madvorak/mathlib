@@ -60,7 +60,7 @@ begin
   have C_pos : (2:ℝ) * m * (∥k∥ / ε) ≥ 0, by nlinarith,
   /- bound norms of `g i`-/
   /- Suppose `y : E` and `ε / ∥k∥ ≤ ∥y∥ < ε`, then for any operator `T` in the collection:
-  `∥T y∥ = ∥T (x + y) - T x∥ ≤ ∥T (x + y)∥ + ∥T x∥ ≤ m + m ≤ 2 * m * (∥k∥ / ε) * ∥x∥` -/
+  `∥T y∥ = ∥T (x + y) - T x∥ ≤ ∥T (x + y)∥ + ∥T x∥ ≤ m + m ≤ 2 * m * (∥k∥ / ε) * ∥y∥` -/
   have norm_aux : ∀ i : ι, ∀ y : E, ε / ∥k∥ ≤ ∥y∥ → ∥y∥ < ε → ∥g i y∥ ≤ (2:ℝ) * m * (∥k∥ / ε) * ∥y∥,
     { intros i y le_y y_lt,
       have yx_mem : y + x ∈ metric.ball x ε, by rwa [add_comm, add_mem_ball_iff_norm],
@@ -114,6 +114,7 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
   map_smul' := (linear_map_of_tendsto h).map_smul',
   cont :=
     begin
+      /- show that the maps are pointwise bounded and apply `banach_steinhaus`-/
       have h_point_bdd : ∀ x : E, ∃ C : ℝ, ∀ n : ℕ, ∥g n x∥ ≤ C,
         { intro x,
           rcases cauchy_seq_bdd (tendsto_pi_nhds.mp h x).cauchy_seq with ⟨C, C_pos, hC⟩,
@@ -122,6 +123,8 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
           calc ∥g n x∥ ≤ ∥g 0 x∥ + ∥g n x - g 0 x∥ : norm_le_insert' _ _
             ...        ≤ C + ∥g 0 x∥               : by linarith [hC n 0] },
       cases banach_steinhaus h_point_bdd with C' hC',
+      /- show the uniform bound from `banach_steinhaus` is the norm bound of the limit map
+         by allowing "an `ε` of room." -/
       refine linear_map.continuous_of_bound (linear_map_of_tendsto h) C' _,
       intro x,
       refine _root_.le_of_forall_pos_lt_add (λ ε ε_pos, _),
