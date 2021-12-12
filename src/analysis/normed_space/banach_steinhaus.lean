@@ -17,14 +17,18 @@ Much more general versions exist (in particular, for maps from barrelled spaces 
 convex spaces), but these are not yet in `mathlib`.
 -/
 
-variables {E : Type*} {F : Type*} {𝕜 : Type*}
-variables [semi_normed_group E] [semi_normed_group F]
-variables [nondiscrete_normed_field 𝕜] [semi_normed_space 𝕜 E] [semi_normed_space 𝕜 F]
+variables
+{E F 𝕜 𝕜₂ : Type*}
+[semi_normed_group E] [semi_normed_group F]
+[nondiscrete_normed_field 𝕜] [nondiscrete_normed_field 𝕜₂]
+[semi_normed_space 𝕜 E] [semi_normed_space 𝕜₂ F]
+{σ₁₂ : 𝕜 →+* 𝕜₂} [ring_hom_isometric σ₁₂]
+
 
 /-- This is the standard Banach-Steinhaus theorem, or Uniform Boundedness Principle.
 If a family of continuous linear maps from a Banach space into a normed space is pointwise
 bounded, then the norms of these linear maps are uniformly bounded. -/
-theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
+theorem banach_steinhaus {ι : Type*} [complete_space E] {g : ι → E →SL[σ₁₂] F}
   ( h : ∀ x : E, ∃ C : ℝ, ∀ i : ι, ∥g i x∥ ≤ C) :
   ∃ C' : ℝ, ∀ i : ι, ∥g i∥ ≤ C' :=
 begin
@@ -82,7 +86,7 @@ open ennreal
 
 /-- This version of Banach-Steinhaus is stated in terms of suprema of `↑∥⬝∥₊ : ℝ≥0∞`
 for convenience. -/
-theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →L[𝕜] F}
+theorem banach_steinhaus_supr_nnnorm {ι : Type*} [complete_space E] {g : ι → E →SL[σ₁₂] F}
   ( h : ∀ x : E, (⨆ i : ι, ↑∥g i x∥₊) < ∞) :
   (⨆ i : ι, ↑∥g i∥₊) < ∞ :=
 begin
@@ -107,8 +111,8 @@ open filter
 domain is complete, the Banach-Steinhaus theorem is used to guarantee that the limit map
 is a *continuous* linear map as well. -/
 def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
-  {g : ℕ → E →L[𝕜] F} {f : E → F} (h : tendsto (λ n x, g n x) at_top (𝓝 f)) :
-  E →L[𝕜] F :=
+  {g : ℕ → E →SL[σ₁₂] F} {f : E → F} (h : tendsto (λ n x, g n x) at_top (𝓝 f)) :
+  E →SL[σ₁₂] F :=
 { to_fun := f,
   map_add' := (linear_map_of_tendsto h).map_add',
   map_smul' := (linear_map_of_tendsto h).map_smul',
