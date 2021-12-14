@@ -111,11 +111,11 @@ open filter
 domain is complete, the Banach-Steinhaus theorem is used to guarantee that the limit map
 is a *continuous* linear map as well. -/
 def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
-  {g : ℕ → E →SL[σ₁₂] F} {f : E → F} (h : tendsto (λ n x, g n x) at_top (𝓝 f)) :
+  (g : ℕ → E →SL[σ₁₂] F) {f : E → F} (h : tendsto (λ n x, g n x) at_top (𝓝 f)) :
   E →SL[σ₁₂] F :=
 { to_fun := f,
-  map_add' := (linear_map_of_tendsto h).map_add',
-  map_smul' := (linear_map_of_tendsto h).map_smul',
+  map_add' := (linear_map_of_tendsto g h).map_add',
+  map_smul' := (linear_map_of_tendsto g h).map_smul',
   cont :=
     begin
       /- show that the maps are pointwise bounded and apply `banach_steinhaus`-/
@@ -129,7 +129,7 @@ def continuous_linear_map_of_tendsto [complete_space E] [t2_space F]
       cases banach_steinhaus h_point_bdd with C' hC',
       /- show the uniform bound from `banach_steinhaus` is the norm bound of the limit map
          by allowing "an `ε` of room." -/
-      refine linear_map.continuous_of_bound (linear_map_of_tendsto h) C' _,
+      refine linear_map.continuous_of_bound (linear_map_of_tendsto g h) C' _,
       intro x,
       refine _root_.le_of_forall_pos_lt_add (λ ε ε_pos, _),
       cases metric.tendsto_at_top.mp (tendsto_pi_nhds.mp h x) ε ε_pos with n hn,
