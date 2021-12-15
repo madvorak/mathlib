@@ -202,6 +202,9 @@ end
 
 instance : has_one (submonoid.powers (2 : ℤ)) := { one := ⟨1, 0, pow_zero 2⟩ }
 
+lemma submonoid.log_add (x y : submonoid.powers (2 : ℤ)) :
+  submonoid.log (x * y) = submonoid.log x + submonoid.log y := sorry
+
 def dyadic_map : add_monoid_hom (localization.away (2:ℤ)) surreal := {
   to_fun := λ x, localization.lift_on x (λ x y, x • pow_half (submonoid.log y)) $
   begin
@@ -229,21 +232,21 @@ def dyadic_map : add_monoid_hom (localization.away (2:ℤ)) surreal := {
   end,
   map_add' := λ x y, localization.induction_on₂ x y $
   begin
-    rintros ⟨a, ⟨b, b' , hb⟩⟩ ⟨c, ⟨d, d', hd⟩⟩,
+    rintros ⟨a, ⟨b, ⟨b' , hb⟩⟩⟩ ⟨c, ⟨d, ⟨d', hd⟩⟩⟩,
     rw localization.add_mk,
     repeat {rw localization.lift_on_mk},
-    dsimp,
-    have : submonoid.log(⟨b, b', hb⟩) = b', by sorry,
+    subst hb,
+    subst hd,
+    rw submonoid.log_add,
+    have h₂ : 1 < (2 : ℤ).nat_abs, from dec_trivial,
+    have := @submonoid.log_pow_int_eq_self 2 h₂ b',
+    unfold submonoid.pow at this,
     rw this, clear this,
-    have : submonoid.log(⟨d, d', hd⟩) = d', by sorry,
+    have := @submonoid.log_pow_int_eq_self 2 h₂ d',
+    unfold submonoid.pow at this,
     rw this, clear this,
-    have : submonoid.log(⟨b, b', hb⟩ * ⟨d, d', hd⟩) = b' + d', by sorry,
-    rw this, clear this,
-    rw ← hb, rw ← hd,
     calc (2 ^ b' * c + 2 ^ d' * a) • pow_half (b' + d')
-      = (2 ^ b' * c) • pow_half (b' + d') + (2 ^ d' * a) • pow_half (b' + d') : add_smul _ _ _
-    ... = (c * 2 ^ b') • pow_half (b' + d') + (a * 2 ^ d') • pow_half (b' + d') : by simp only [mul_comm]
-    ... = (c * 2 ^ b') • pow_half (b' + d') + (a * 2 ^ d') • pow_half (d' + b') : by simp only [add_comm]
+    = (c * 2 ^ b') • pow_half (b' + d') + (a * 2 ^ d') • pow_half (d' + b') : by simp only [add_smul, mul_comm,add_comm]
     ... = c • pow_half d' + a • pow_half b' : by simp only [zsmul_pow_two_pow_half]
     ... = a • pow_half b' + c • pow_half d' : add_comm _ _,
   end
@@ -252,14 +255,14 @@ def dyadic_map : add_monoid_hom (localization.away (2:ℤ)) surreal := {
 /-- We define dyadic surreals as the range of the map `dyadic_map`. -/
 def dyadic : set surreal := set.range dyadic_map
 
-theorem dyadic_map_injective : (function.injective dyadic_map) :=
-begin
- rw (add_monoid_hom.injective_iff dyadic_map),
---  rintros a ha,
-  unfold dyadic_map,
-simp,
-sorry,
-end
+-- theorem dyadic_map_injective : (function.injective dyadic_map) :=
+-- begin
+--  rw (add_monoid_hom.injective_iff dyadic_map),
+-- --  rintros a ha,
+--   unfold dyadic_map,
+-- simp,
+-- sorry,
+-- end
 
 -- instance : comm_monoid dyadic_rat := localization.comm_monoid (submonoid.powers (2 : ℤ))
 
